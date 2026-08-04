@@ -52,7 +52,11 @@ export default function FuriganaText({
         return (
           <span key={i} className="relative">
             <ruby
-              className={match ? 'cursor-pointer' : undefined}
+              className={
+                match
+                  ? 'cursor-pointer border-b border-dotted border-indigo-soft/70 text-indigo-soft'
+                  : undefined
+              }
               onClick={
                 match
                   ? (e) => {
