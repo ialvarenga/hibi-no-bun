@@ -19,7 +19,7 @@ function devApi(): Plugin {
         req.on('end', async () => {
           res.setHeader('Content-Type', 'application/json')
           try {
-            const { topics, theme } = JSON.parse(body || '{}')
+            const { topics, theme, recentTopics, jlptLevel } = JSON.parse(body || '{}')
             if (!Array.isArray(topics) || topics.length === 0 || !theme) {
               res.statusCode = 400
               res.end(JSON.stringify({ error: 'Corpo inválido: esperado { topics, theme }' }))
@@ -28,7 +28,13 @@ function devApi(): Plugin {
             const apiKeyHeader = req.headers['x-anthropic-api-key']
             const apiKey = Array.isArray(apiKeyHeader) ? apiKeyHeader[0] : apiKeyHeader
             const { generateReading } = await import('./api/_lib/generateReading.js')
-            const reading = await generateReading(topics, theme, apiKey)
+            const reading = await generateReading(
+              topics,
+              theme,
+              apiKey,
+              Array.isArray(recentTopics) ? recentTopics.filter((t) => typeof t === 'string') : [],
+              typeof jlptLevel === 'string' && jlptLevel.trim() ? jlptLevel.trim() : undefined,
+            )
             res.end(JSON.stringify(reading))
           } catch (err) {
             console.error('dev /api/generate error:', err)
