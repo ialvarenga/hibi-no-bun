@@ -251,9 +251,14 @@ export default function App() {
           onGenerate={() => void handleGenerate()}
           showFurigana={profile.showFurigana}
           onToggleFurigana={toggleFurigana}
+          jlptLevels={profile.jlptLevels}
         />
 
-        <HistoryList entries={pastEntries} showFurigana={profile.showFurigana} />
+        <HistoryList
+          entries={pastEntries}
+          showFurigana={profile.showFurigana}
+          jlptLevels={profile.jlptLevels}
+        />
       </div>
     </div>
   )

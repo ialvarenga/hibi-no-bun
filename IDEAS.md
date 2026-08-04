@@ -25,6 +25,12 @@ out of here, or mark it done) once it ships.
       `api/_lib/generateReading.ts`), rendered as an interactive quiz with instant right/wrong
       feedback on both today's card and history entries (`src/components/ComprehensionCheck.tsx`).
 
+- [x] **Level-aware furigana** — the furigana toggle used to be all-or-nothing; it now shows
+      readings only for kanji above the hardest of the user's selected JLPT levels, using a
+      bundled kanji→JLPT-level table derived from davidluzgouveia/kanji-data (MIT)
+      (`src/lib/kanjiLevels.ts`, `src/lib/kanjiLevel.ts`, `src/components/FuriganaText.tsx`).
+      The manual toggle still hides everything when turned off.
+
 ## Backlog
 
 1. **Listen mode (TTS)** — Web Speech API reading the paragraph aloud for pronunciation/listening

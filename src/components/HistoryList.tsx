@@ -5,9 +5,10 @@ import type { ReadingEntry } from '../lib/types'
 interface HistoryListProps {
   entries: ReadingEntry[]
   showFurigana: boolean
+  jlptLevels: string[]
 }
 
-export default function HistoryList({ entries, showFurigana }: HistoryListProps) {
+export default function HistoryList({ entries, showFurigana, jlptLevels }: HistoryListProps) {
   if (entries.length === 0) return null
 
   return (
@@ -29,6 +30,7 @@ export default function HistoryList({ entries, showFurigana }: HistoryListProps)
             <FuriganaText
               text={h.paragraph_jp}
               showReadings={showFurigana}
+              jlptLevels={jlptLevels}
               vocab={h.vocab}
               className="block font-display text-base mt-3 leading-loose text-ink"
             />

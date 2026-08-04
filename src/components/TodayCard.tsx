@@ -12,6 +12,7 @@ interface TodayCardProps {
   onGenerate: () => void
   showFurigana: boolean
   onToggleFurigana: () => void
+  jlptLevels: string[]
 }
 
 export default function TodayCard({
@@ -21,6 +22,7 @@ export default function TodayCard({
   onGenerate,
   showFurigana,
   onToggleFurigana,
+  jlptLevels,
 }: TodayCardProps) {
   const [showTranslation, setShowTranslation] = useState(false)
 
@@ -58,6 +60,7 @@ export default function TodayCard({
           <FuriganaText
             text={entry.paragraph_jp}
             showReadings={showFurigana}
+            jlptLevels={jlptLevels}
             vocab={entry.vocab}
             className="block font-display text-xl leading-loose mb-4 pr-12 text-ink"
           />

@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { parseFurigana, type FuriganaSegment } from '../lib/furigana'
+import { needsFurigana } from '../lib/kanjiLevel'
 import type { VocabItem } from '../lib/types'
 
 interface FuriganaTextProps {
   text: string
+  // Master on/off switch — false hides every reading regardless of level.
+  // When true, a reading is only shown for kanji above the user's studied
+  // JLPT level (see `jlptLevels`), not for every kanji indiscriminately.
   showReadings: boolean
+  jlptLevels: string[]
   vocab?: VocabItem[]
   className?: string
 }
@@ -21,6 +26,7 @@ function matchVocab(segment: FuriganaSegment, vocab: VocabItem[]): VocabItem | u
 export default function FuriganaText({
   text,
   showReadings,
+  jlptLevels,
   vocab = [],
   className,
 }: FuriganaTextProps) {
@@ -48,6 +54,7 @@ export default function FuriganaText({
 
         const match = matchVocab(segment, vocab)
         const isActive = activeIndex === i
+        const showReading = showReadings && needsFurigana(segment.text, jlptLevels)
 
         return (
           <span key={i} className="relative">
@@ -67,7 +74,7 @@ export default function FuriganaText({
               }
             >
               {segment.text}
-              {showReadings && (
+              {showReading && (
                 <rt className="text-[0.5em] font-body font-normal text-ink-soft select-none">
                   {segment.reading}
                 </rt>
