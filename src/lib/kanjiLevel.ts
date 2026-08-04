@@ -11,6 +11,8 @@ function studyThreshold(jlptLevels: string[]): number {
   return numbers.length > 0 ? Math.min(...numbers) : LEVEL_NUMBER.N5
 }
 
+const KANJI_RANGE = /[一-鿿々〻]/
+
 // Kanji missing from the table (proper nouns, rare/non-jouyou characters)
 // are treated as unknown, since they're generally not something a learner
 // would already have memorized regardless of JLPT level.
@@ -19,13 +21,17 @@ function isCharKnown(char: string, threshold: number): boolean {
   return level !== undefined && level >= threshold
 }
 
-// A run of text (which may contain multiple kanji, e.g. a compound word)
-// needs its furigana shown if any character in it is above the user's
-// studied level — partial furigana within a single word reads as broken.
+// A run of text (which may contain multiple kanji, e.g. a compound word, or
+// trailing okurigana like 多く/新しい) needs its furigana shown if any KANJI
+// character in it is above the user's studied level — partial furigana
+// within a single word reads as broken. Non-kanji characters (okurigana,
+// punctuation) are skipped: they're never "unknown" themselves, and
+// counting them would force furigana to always show for any word with
+// okurigana regardless of the selected JLPT levels.
 export function needsFurigana(text: string, jlptLevels: string[]): boolean {
   const threshold = studyThreshold(jlptLevels)
   for (const char of text) {
-    if (!isCharKnown(char, threshold)) return true
+    if (KANJI_RANGE.test(char) && !isCharKnown(char, threshold)) return true
   }
   return false
 }
