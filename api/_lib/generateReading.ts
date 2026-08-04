@@ -8,6 +8,8 @@ export interface TopicInput {
 }
 
 export interface GeneratedReading {
+  // Contains inline furigana annotations: each kanji run is immediately
+  // followed by its reading in brackets, e.g. "私[わたし]は日本語[にほんご]".
   paragraph_jp: string
   translation_pt: string
   vocab: { word: string; reading: string; meaning_pt: string }[]
@@ -22,9 +24,10 @@ function buildPrompt(topics: TopicInput[], theme: string): string {
   return `Você gera conteúdo de leitura diária para quem estuda japonês (nível aproximado JLPT N4-N3).
 
 1. Use a ferramenta de busca na web para encontrar UM artigo, notícia ou post real e atualmente acessível, em japonês, sobre o tema: "${theme}".
-2. Escreva um parágrafo ORIGINAL em japonês (entre 90 e 150 caracteres), inspirado/parafraseado nesse conteúdo (não copie trechos literais da fonte), incorporando naturalmente pelo menos 2 destes pontos gramaticais: ${grammarList}.
-3. Responda APENAS com um JSON válido, sem markdown, sem texto antes ou depois, no formato exato:
-{"paragraph_jp": "...", "translation_pt": "...", "vocab": [{"word": "...", "reading": "...", "meaning_pt": "..."}], "grammar_used": ["..."], "source_title": "...", "source_url": "..."}
+2. Escreva um parágrafo ORIGINAL em japonês (entre 90 e 150 caracteres, contando só o texto japonês, sem as leituras entre colchetes do passo 3), inspirado/parafraseado nesse conteúdo (não copie trechos literais da fonte), incorporando naturalmente pelo menos 2 destes pontos gramaticais: ${grammarList}.
+3. Adicione furigana: logo após CADA palavra ou trecho contendo kanji, insira a leitura em hiragana entre colchetes, no formato 漢字[かんじ]. Não anote hiragana, katakana nem pontuação — só trechos com kanji. Exemplo: 私[わたし]は日本語[にほんご]を勉強[べんきょう]しています。
+4. Responda APENAS com um JSON válido, sem markdown, sem texto antes ou depois, no formato exato:
+{"paragraph_jp": "...(com as anotações de furigana do passo 3)...", "translation_pt": "...", "vocab": [{"word": "...", "reading": "...", "meaning_pt": "..."}], "grammar_used": ["..."], "source_title": "...", "source_url": "..."}
 O campo "vocab" deve ter entre 5 e 8 palavras relevantes do parágrafo, com leitura em hiragana/katakana e significado em português. "grammar_used" deve listar (em português) quais dos pontos gramaticais acima foram efetivamente usados. "source_url" deve ser a URL real da fonte encontrada na busca.`
 }
 
