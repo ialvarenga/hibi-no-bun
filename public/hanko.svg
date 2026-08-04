@@ -1,0 +1,6 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#EFE9DC"/>
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#C1432E" stroke-width="18"/>
+  <text x="256" y="235" text-anchor="middle" font-family="'Shippori Mincho', 'Hiragino Mincho ProN', serif" font-size="120" font-weight="700" fill="#C1432E">日々</text>
+  <text x="256" y="345" text-anchor="middle" font-family="'Shippori Mincho', 'Hiragino Mincho ProN', serif" font-size="120" font-weight="700" fill="#C1432E">一文</text>
+</svg>
