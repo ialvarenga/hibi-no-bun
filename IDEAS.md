@@ -46,9 +46,17 @@ out of here, or mark it done) once it ships.
       `resolveGrammarTopic` (`src/lib/constants.ts`, with a legacy free-text fallback) and rendered
       by `src/components/GrammarChip.tsx` on both today's card and history entries.
 
+- [x] **Full streak calendar** — a "Ver calendário completo" toggle under the last-7-days row
+      expands a GitHub-style contribution graph (52 weeks, month labels, weekday labels) built
+      from `completedDates` (`src/lib/date.ts:lastNWeeks`, `src/components/StreakCalendar.tsx`,
+      `src/components/StreakStamps.tsx`).
+
+- [x] **Search/filter history** by theme or grammar point — the history section now has a free-text
+      search box (matches theme, translation, paragraph text, source title) plus theme and grammar
+      dropdowns populated from the entries actually present, all combined client-side
+      (`src/components/HistoryList.tsx`).
+
 ## Backlog
 
-1. **Full streak calendar** — contribution-graph-style view instead of just the last 7 days.
-2. **Search/filter history** by theme or grammar point.
-3. **Sentence mining / writing practice** — user writes a short reaction/summary in Japanese,
+1. **Sentence mining / writing practice** — user writes a short reaction/summary in Japanese,
    submitted for AI feedback.

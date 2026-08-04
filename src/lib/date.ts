@@ -15,3 +15,29 @@ export function addDaysStr(dateStr: string, days: number): string {
   d.setDate(d.getDate() + days)
   return d.toISOString().slice(0, 10)
 }
+
+// Grid of `weeks` columns x 7 rows (Sun-Sat), ending on the current week,
+// for a GitHub-style contribution calendar. Cells before the range start or
+// after today are `null` (padding).
+export function lastNWeeks(weeks: number): (string | null)[][] {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const start = new Date(today)
+  start.setDate(start.getDate() - (weeks * 7 - 1))
+  start.setDate(start.getDate() - start.getDay()) // back up to that week's Sunday
+
+  const cells: (string | null)[] = []
+  const cursor = new Date(start)
+  while (cursor <= today) {
+    cells.push(cursor.toISOString().slice(0, 10))
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  const grid: (string | null)[][] = []
+  for (let i = 0; i < cells.length; i += 7) {
+    grid.push(cells.slice(i, i + 7))
+  }
+  return grid
+}
