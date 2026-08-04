@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Sparkles, Loader2, ExternalLink, Eye, EyeOff } from 'lucide-react'
+import { Sparkles, Loader2, ExternalLink, Eye, EyeOff, CaseSensitive } from 'lucide-react'
 import HankoStamp from './HankoStamp'
+import FuriganaText from './FuriganaText'
 import type { ReadingEntry } from '../lib/types'
 
 interface TodayCardProps {
@@ -8,9 +9,18 @@ interface TodayCardProps {
   generating: boolean
   error: string | null
   onGenerate: () => void
+  showFurigana: boolean
+  onToggleFurigana: () => void
 }
 
-export default function TodayCard({ entry, generating, error, onGenerate }: TodayCardProps) {
+export default function TodayCard({
+  entry,
+  generating,
+  error,
+  onGenerate,
+  showFurigana,
+  onToggleFurigana,
+}: TodayCardProps) {
   const [showTranslation, setShowTranslation] = useState(false)
 
   return (
@@ -44,17 +54,28 @@ export default function TodayCard({ entry, generating, error, onGenerate }: Toda
       {entry && (
         <div>
           <p className="text-xs mb-3 text-ink-soft">Tema: {entry.theme}</p>
-          <p className="font-display text-xl leading-relaxed mb-4 pr-12 text-ink">
-            {entry.paragraph_jp}
-          </p>
+          <FuriganaText
+            text={entry.paragraph_jp}
+            showReadings={showFurigana}
+            className="block font-display text-xl leading-loose mb-4 pr-12 text-ink"
+          />
 
-          <button
-            onClick={() => setShowTranslation((s) => !s)}
-            className="border border-paper-line rounded-full px-3 py-1.5 text-xs inline-flex items-center gap-1.5 mb-4 text-indigo-soft"
-          >
-            {showTranslation ? <EyeOff size={13} /> : <Eye size={13} />}
-            {showTranslation ? 'Ocultar tradução' : 'Revelar tradução'}
-          </button>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <button
+              onClick={() => setShowTranslation((s) => !s)}
+              className="border border-paper-line rounded-full px-3 py-1.5 text-xs inline-flex items-center gap-1.5 text-indigo-soft"
+            >
+              {showTranslation ? <EyeOff size={13} /> : <Eye size={13} />}
+              {showTranslation ? 'Ocultar tradução' : 'Revelar tradução'}
+            </button>
+            <button
+              onClick={onToggleFurigana}
+              className="border border-paper-line rounded-full px-3 py-1.5 text-xs inline-flex items-center gap-1.5 text-indigo-soft"
+            >
+              <CaseSensitive size={13} />
+              {showFurigana ? 'Ocultar furigana' : 'Mostrar furigana'}
+            </button>
+          </div>
           {showTranslation && (
             <p className="text-sm mb-5 text-ink-soft">{entry.translation_pt}</p>
           )}

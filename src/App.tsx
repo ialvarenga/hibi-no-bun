@@ -68,6 +68,11 @@ export default function App() {
     persistProfile({ ...profile, themes })
   }
 
+  function toggleFurigana() {
+    if (!profile) return
+    persistProfile({ ...profile, showFurigana: !profile.showFurigana })
+  }
+
   function addCustomTheme(name: string) {
     if (!profile) return
     const allThemes = profile.allThemes.includes(name)
@@ -155,9 +160,11 @@ export default function App() {
           generating={generating}
           error={error}
           onGenerate={() => void handleGenerate()}
+          showFurigana={profile.showFurigana}
+          onToggleFurigana={toggleFurigana}
         />
 
-        <HistoryList entries={pastEntries} />
+        <HistoryList entries={pastEntries} showFurigana={profile.showFurigana} />
       </div>
     </div>
   )

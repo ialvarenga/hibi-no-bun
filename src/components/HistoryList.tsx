@@ -1,10 +1,12 @@
+import FuriganaText from './FuriganaText'
 import type { ReadingEntry } from '../lib/types'
 
 interface HistoryListProps {
   entries: ReadingEntry[]
+  showFurigana: boolean
 }
 
-export default function HistoryList({ entries }: HistoryListProps) {
+export default function HistoryList({ entries, showFurigana }: HistoryListProps) {
   if (entries.length === 0) return null
 
   return (
@@ -23,9 +25,11 @@ export default function HistoryList({ entries }: HistoryListProps) {
                 {h.date} · {h.theme}
               </span>
             </summary>
-            <p className="font-display text-base mt-3 leading-relaxed text-ink">
-              {h.paragraph_jp}
-            </p>
+            <FuriganaText
+              text={h.paragraph_jp}
+              showReadings={showFurigana}
+              className="block font-display text-base mt-3 leading-loose text-ink"
+            />
             <p className="text-xs mt-2 text-ink-soft">{h.translation_pt}</p>
           </details>
         ))}
