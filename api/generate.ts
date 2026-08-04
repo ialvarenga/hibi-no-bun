@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { generateReading, type TopicInput } from './_lib/generateReading.js'
+import { generateReading, type TopicInput } from './_lib/generateReading'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
