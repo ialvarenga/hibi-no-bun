@@ -3,7 +3,8 @@ import {
   DEFAULT_STUDIED_IDS,
   DEFAULT_SELECTED_THEMES,
   DEFAULT_THEMES,
-  DEFAULT_JLPT_LEVEL,
+  DEFAULT_JLPT_LEVELS,
+  JLPT_LEVELS,
 } from './constants'
 import { todayStr, addDaysStr } from './date'
 import type { Profile, ReadingEntry, VocabCard } from './types'
@@ -64,8 +65,18 @@ function defaultProfile(): Profile {
     allThemes: DEFAULT_THEMES,
     showFurigana: true,
     apiKey: '',
-    jlptLevel: DEFAULT_JLPT_LEVEL,
+    jlptLevels: DEFAULT_JLPT_LEVELS,
   }
+}
+
+// Profiles saved before jlptLevels was a multi-select array may carry a
+// leftover single-string `jlptLevel` (e.g. "N4-N3" or "N2") — split it back
+// into the array so an earlier choice isn't silently lost.
+function migrateLegacyJlptLevel(stored: Partial<Profile> & { jlptLevel?: string }): string[] | null {
+  if (stored.jlptLevels || !stored.jlptLevel) return null
+  const known = new Set(JLPT_LEVELS.map((l) => l.value))
+  const levels = stored.jlptLevel.split(/[^A-Za-z0-9]+/).filter((v) => known.has(v))
+  return levels.length > 0 ? levels : null
 }
 
 export async function loadProfile(): Promise<Profile> {
@@ -73,7 +84,12 @@ export async function loadProfile(): Promise<Profile> {
   const stored = await db.get('profile', PROFILE_KEY)
   // Merge over defaults so profiles saved before a field was added (e.g.
   // showFurigana) still come back fully populated.
-  return { ...defaultProfile(), ...stored }
+  const migratedJlptLevels = stored ? migrateLegacyJlptLevel(stored) : null
+  return {
+    ...defaultProfile(),
+    ...stored,
+    ...(migratedJlptLevels ? { jlptLevels: migratedJlptLevels } : {}),
+  }
 }
 
 export async function saveProfile(profile: Profile): Promise<void> {

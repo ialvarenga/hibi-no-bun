@@ -6,7 +6,7 @@ import SettingsPanel from './components/SettingsPanel'
 import TodayCard from './components/TodayCard'
 import HistoryList from './components/HistoryList'
 import VocabReview from './components/VocabReview'
-import { DEFAULT_TOPICS } from './lib/constants'
+import { DEFAULT_TOPICS, JLPT_LEVELS } from './lib/constants'
 import {
   loadProfile,
   saveProfile,
@@ -98,9 +98,12 @@ export default function App() {
     persistProfile({ ...profile, apiKey: key })
   }
 
-  function setJlptLevel(level: string) {
-    if (!profile || level === profile.jlptLevel) return
-    persistProfile({ ...profile, jlptLevel: level })
+  function toggleJlptLevel(level: string) {
+    if (!profile) return
+    const jlptLevels = profile.jlptLevels.includes(level)
+      ? profile.jlptLevels.filter((l) => l !== level)
+      : [...profile.jlptLevels, level]
+    persistProfile({ ...profile, jlptLevels })
   }
 
   function addCustomTheme(name: string) {
@@ -145,6 +148,10 @@ export default function App() {
       setError('Selecione ao menos um tema de interesse.')
       return
     }
+    if (profile.jlptLevels.length === 0) {
+      setError('Selecione ao menos um nível JLPT.')
+      return
+    }
 
     setGenerating(true)
     const theme = profile.themes[Math.floor(Math.random() * profile.themes.length)]
@@ -152,6 +159,9 @@ export default function App() {
       .map((h) => h.source_title)
       .filter((t): t is string => !!t)
       .slice(0, 20)
+    const jlptLevel = JLPT_LEVELS.map((l) => l.value)
+      .filter((v) => profile.jlptLevels.includes(v))
+      .join('-')
 
     try {
       const result = await generateReading(
@@ -159,7 +169,7 @@ export default function App() {
           topics: studiedTopics.map((t) => ({ jp: t.jp, pt: t.pt })),
           theme,
           recentTopics,
-          jlptLevel: profile.jlptLevel,
+          jlptLevel,
         },
         profile.apiKey,
       )
@@ -228,7 +238,7 @@ export default function App() {
             onToggleTheme={toggleTheme}
             onAddCustomTheme={addCustomTheme}
             onSetApiKey={setApiKey}
-            onSetJlptLevel={setJlptLevel}
+            onToggleJlptLevel={toggleJlptLevel}
             notificationPermission={notificationPermission}
             onRequestNotifications={() => void handleRequestNotifications()}
           />

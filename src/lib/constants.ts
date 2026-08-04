@@ -31,16 +31,13 @@ export const DEFAULT_THEMES: string[] = [
 export const DEFAULT_STUDIED_IDS = DEFAULT_TOPICS.slice(0, 3).map((t) => t.id)
 export const DEFAULT_SELECTED_THEMES = ['Tecnologia', 'Viagem']
 
+// Ordered easiest to hardest — selection order in the UI/prompt follows this.
 export const JLPT_LEVELS: { value: string; label: string }[] = [
-  { value: 'N5', label: 'N5 (iniciante)' },
-  { value: 'N5-N4', label: 'N5-N4' },
+  { value: 'N5', label: 'N5' },
   { value: 'N4', label: 'N4' },
-  { value: 'N4-N3', label: 'N4-N3 (padrão)' },
   { value: 'N3', label: 'N3' },
-  { value: 'N3-N2', label: 'N3-N2' },
   { value: 'N2', label: 'N2' },
-  { value: 'N2-N1', label: 'N2-N1' },
-  { value: 'N1', label: 'N1 (avançado)' },
+  { value: 'N1', label: 'N1' },
 ]
 
-export const DEFAULT_JLPT_LEVEL = 'N4-N3'
+export const DEFAULT_JLPT_LEVELS = ['N4', 'N3']

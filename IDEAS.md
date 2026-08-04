@@ -15,9 +15,10 @@ out of here, or mark it done) once it ships.
       (`src/components/FuriganaText.tsx`).
 
 - [x] **JLPT level control** — the prompt's target level is now a per-profile setting
-      (`jlptLevel` on `Profile`) instead of a hardcoded "N4-N3", editable via a dropdown in
-      Settings (`src/components/SettingsPanel.tsx`, `src/lib/constants.ts`) and threaded through
-      to the generation prompt (`api/_lib/generateReading.ts`).
+      (`jlptLevels: string[]` on `Profile`, default N4+N3) instead of a hardcoded "N4-N3",
+      editable via multi-select toggle pills in Settings (`src/components/SettingsPanel.tsx`,
+      `src/lib/constants.ts`) and joined (e.g. "N3-N2") into the generation prompt
+      (`api/_lib/generateReading.ts`).
 
 ## Backlog
 
