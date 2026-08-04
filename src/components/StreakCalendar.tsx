@@ -1,4 +1,4 @@
-import { lastNWeeks, todayStr } from '../lib/date'
+import { lastNWeeks, parseLocalDateStr, todayStr } from '../lib/date'
 
 interface StreakCalendarProps {
   completedDates: Set<string>
@@ -20,7 +20,7 @@ export default function StreakCalendar({ completedDates }: StreakCalendarProps) 
   const monthLabels = weeks.map((week) => {
     const firstReal = week.find((d): d is string => d !== null)
     if (!firstReal) return null
-    const month = new Date(firstReal).getMonth()
+    const month = parseLocalDateStr(firstReal).getMonth()
     if (month === lastMonth) return null
     lastMonth = month
     return MONTH_LABELS_PT[month]

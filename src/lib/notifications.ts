@@ -1,3 +1,5 @@
+import { todayStr } from './date'
+
 // Local daily reminder. PWAs on iOS/Android have no reliable way to wake up
 // in the background without a push server, so this is intentionally modest:
 // while the app is open (or briefly on launch) it checks whether today's
@@ -24,10 +26,9 @@ export async function maybeShowDailyReminder(hasTodayEntry: boolean): Promise<vo
   if (Notification.permission !== 'granted') return
   if (hasTodayEntry) return
 
-  const today = new Date()
-  if (today.getHours() < REMINDER_HOUR) return
+  if (new Date().getHours() < REMINDER_HOUR) return
 
-  const todayKey = today.toISOString().slice(0, 10)
+  const todayKey = todayStr()
   if (localStorage.getItem(LAST_SHOWN_KEY) === todayKey) return
 
   const registration = await navigator.serviceWorker.ready

@@ -1,19 +1,34 @@
+// Formats/parses YYYY-MM-DD strings using LOCAL calendar fields rather than
+// UTC (unlike toISOString()/new Date(str), which are UTC-based and roll over
+// to the next day hours before local midnight for any timezone behind UTC).
+function toLocalDateStr(d: Date): string {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+export function parseLocalDateStr(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
 export function todayStr(): string {
-  return new Date().toISOString().slice(0, 10)
+  return toLocalDateStr(new Date())
 }
 
 export function lastNDays(n: number): string[] {
   return Array.from({ length: n }).map((_, i) => {
     const d = new Date()
     d.setDate(d.getDate() - (n - 1 - i))
-    return d.toISOString().slice(0, 10)
+    return toLocalDateStr(d)
   })
 }
 
 export function addDaysStr(dateStr: string, days: number): string {
-  const d = new Date(dateStr)
+  const d = parseLocalDateStr(dateStr)
   d.setDate(d.getDate() + days)
-  return d.toISOString().slice(0, 10)
+  return toLocalDateStr(d)
 }
 
 // Grid of `weeks` columns x 7 rows (Sun-Sat), ending on the current week,
@@ -30,7 +45,7 @@ export function lastNWeeks(weeks: number): (string | null)[][] {
   const cells: (string | null)[] = []
   const cursor = new Date(start)
   while (cursor <= today) {
-    cells.push(cursor.toISOString().slice(0, 10))
+    cells.push(toLocalDateStr(cursor))
     cursor.setDate(cursor.getDate() + 1)
   }
   while (cells.length % 7 !== 0) cells.push(null)

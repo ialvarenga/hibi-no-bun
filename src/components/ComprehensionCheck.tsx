@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, X, HelpCircle } from 'lucide-react'
 import type { ComprehensionQuestion } from '../lib/types'
 
@@ -8,6 +8,11 @@ interface ComprehensionCheckProps {
 
 export default function ComprehensionCheck({ questions }: ComprehensionCheckProps) {
   const [answers, setAnswers] = useState<Record<number, number>>({})
+
+  // `questions` can swap out from under this component (e.g. regenerating
+  // today's paragraph reuses the same TodayCard/ComprehensionCheck instance),
+  // so stale answers from the previous set must not bleed into the new one.
+  useEffect(() => setAnswers({}), [questions])
 
   if (questions.length === 0) return null
 
