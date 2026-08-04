@@ -26,6 +26,7 @@ export interface Profile {
   studied: Record<string, boolean>
   themes: string[]
   allThemes: string[]
+  showFurigana: boolean
 }
 
 export interface ExportedData {

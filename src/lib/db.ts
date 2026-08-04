@@ -42,13 +42,16 @@ function defaultProfile(): Profile {
     studied: Object.fromEntries(DEFAULT_STUDIED_IDS.map((id) => [id, true])),
     themes: DEFAULT_SELECTED_THEMES,
     allThemes: DEFAULT_THEMES,
+    showFurigana: true,
   }
 }
 
 export async function loadProfile(): Promise<Profile> {
   const db = await getDB()
   const stored = await db.get('profile', PROFILE_KEY)
-  return stored ?? defaultProfile()
+  // Merge over defaults so profiles saved before a field was added (e.g.
+  // showFurigana) still come back fully populated.
+  return { ...defaultProfile(), ...stored }
 }
 
 export async function saveProfile(profile: Profile): Promise<void> {
