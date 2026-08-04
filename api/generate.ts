@@ -7,10 +7,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return
   }
 
-  const { topics, theme, recentTopics } = (req.body ?? {}) as {
+  const { topics, theme, recentTopics, jlptLevel } = (req.body ?? {}) as {
     topics?: TopicInput[]
     theme?: string
     recentTopics?: string[]
+    jlptLevel?: string
   }
 
   if (!Array.isArray(topics) || topics.length === 0 || typeof theme !== 'string' || !theme.trim()) {
@@ -27,6 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       theme,
       apiKey,
       Array.isArray(recentTopics) ? recentTopics.filter((t) => typeof t === 'string') : [],
+      typeof jlptLevel === 'string' && jlptLevel.trim() ? jlptLevel.trim() : undefined,
     )
     res.status(200).json(reading)
   } catch (err) {

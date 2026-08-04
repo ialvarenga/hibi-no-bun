@@ -4,6 +4,7 @@ export interface GenerateRequest {
   topics: Pick<GrammarTopic, 'jp' | 'pt'>[]
   theme: string
   recentTopics?: string[]
+  jlptLevel?: string
 }
 
 export interface GenerateResponse {

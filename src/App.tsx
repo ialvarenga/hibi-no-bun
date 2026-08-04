@@ -98,6 +98,11 @@ export default function App() {
     persistProfile({ ...profile, apiKey: key })
   }
 
+  function setJlptLevel(level: string) {
+    if (!profile || level === profile.jlptLevel) return
+    persistProfile({ ...profile, jlptLevel: level })
+  }
+
   function addCustomTheme(name: string) {
     if (!profile) return
     const allThemes = profile.allThemes.includes(name)
@@ -154,6 +159,7 @@ export default function App() {
           topics: studiedTopics.map((t) => ({ jp: t.jp, pt: t.pt })),
           theme,
           recentTopics,
+          jlptLevel: profile.jlptLevel,
         },
         profile.apiKey,
       )
@@ -222,6 +228,7 @@ export default function App() {
             onToggleTheme={toggleTheme}
             onAddCustomTheme={addCustomTheme}
             onSetApiKey={setApiKey}
+            onSetJlptLevel={setJlptLevel}
             notificationPermission={notificationPermission}
             onRequestNotifications={() => void handleRequestNotifications()}
           />

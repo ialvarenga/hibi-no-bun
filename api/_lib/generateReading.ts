@@ -18,14 +18,21 @@ export interface GeneratedReading {
   source_url: string
 }
 
-function buildPrompt(topics: TopicInput[], theme: string, recentTopics: string[]): string {
+const DEFAULT_JLPT_LEVEL = 'N4-N3'
+
+function buildPrompt(
+  topics: TopicInput[],
+  theme: string,
+  recentTopics: string[],
+  jlptLevel: string,
+): string {
   const grammarList = topics.map((t) => `${t.jp} (${t.pt})`).join(', ')
   const avoidList =
     recentTopics.length > 0
       ? `\n\nAssuntos já usados recentemente — escolha um artigo sobre um assunto DIFERENTE destes, mesmo que dentro do mesmo tema geral:\n${recentTopics.map((t) => `- ${t}`).join('\n')}`
       : ''
 
-  return `Você gera conteúdo de leitura diária para quem estuda japonês (nível aproximado JLPT N4-N3).
+  return `Você gera conteúdo de leitura diária para quem estuda japonês (nível aproximado JLPT ${jlptLevel}).
 
 1. Use a ferramenta de busca na web para encontrar UM artigo, notícia ou post real e atualmente acessível, em japonês, sobre o tema: "${theme}".${avoidList}
 2. Escreva um parágrafo ORIGINAL em japonês (entre 90 e 150 caracteres, contando só o texto japonês, sem as leituras entre colchetes do passo 3), inspirado/parafraseado nesse conteúdo (não copie trechos literais da fonte), incorporando naturalmente pelo menos 2 destes pontos gramaticais: ${grammarList}.
@@ -59,6 +66,7 @@ export async function generateReading(
   theme: string,
   apiKey?: string,
   recentTopics: string[] = [],
+  jlptLevel: string = DEFAULT_JLPT_LEVEL,
 ): Promise<GeneratedReading> {
   const key = apiKey || process.env.ANTHROPIC_API_KEY
   if (!key) {
@@ -71,7 +79,7 @@ export async function generateReading(
   const params: Anthropic.MessageCreateParamsNonStreaming = {
     model: MODEL,
     max_tokens: 2048,
-    messages: [{ role: 'user', content: buildPrompt(topics, theme, recentTopics) }],
+    messages: [{ role: 'user', content: buildPrompt(topics, theme, recentTopics, jlptLevel) }],
     tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
   }
 

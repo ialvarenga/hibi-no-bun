@@ -28,6 +28,7 @@ export interface Profile {
   allThemes: string[]
   showFurigana: boolean
   apiKey: string
+  jlptLevel: string
 }
 
 export interface VocabCard {

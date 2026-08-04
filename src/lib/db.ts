@@ -1,5 +1,10 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import { DEFAULT_STUDIED_IDS, DEFAULT_SELECTED_THEMES, DEFAULT_THEMES } from './constants'
+import {
+  DEFAULT_STUDIED_IDS,
+  DEFAULT_SELECTED_THEMES,
+  DEFAULT_THEMES,
+  DEFAULT_JLPT_LEVEL,
+} from './constants'
 import { todayStr, addDaysStr } from './date'
 import type { Profile, ReadingEntry, VocabCard } from './types'
 
@@ -59,6 +64,7 @@ function defaultProfile(): Profile {
     allThemes: DEFAULT_THEMES,
     showFurigana: true,
     apiKey: '',
+    jlptLevel: DEFAULT_JLPT_LEVEL,
   }
 }
 

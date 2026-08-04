@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Check, Plus, Bell, BellOff, Eye, EyeOff, KeyRound } from 'lucide-react'
-import { DEFAULT_TOPICS } from '../lib/constants'
+import { Check, Plus, Bell, BellOff, Eye, EyeOff, KeyRound, GraduationCap } from 'lucide-react'
+import { DEFAULT_TOPICS, JLPT_LEVELS } from '../lib/constants'
 import type { Profile } from '../lib/types'
 
 interface SettingsPanelProps {
@@ -9,6 +9,7 @@ interface SettingsPanelProps {
   onToggleTheme: (name: string) => void
   onAddCustomTheme: (name: string) => void
   onSetApiKey: (key: string) => void
+  onSetJlptLevel: (level: string) => void
   notificationPermission: NotificationPermission | 'unsupported'
   onRequestNotifications: () => void
 }
@@ -19,6 +20,7 @@ export default function SettingsPanel({
   onToggleTheme,
   onAddCustomTheme,
   onSetApiKey,
+  onSetJlptLevel,
   notificationPermission,
   onRequestNotifications,
 }: SettingsPanelProps) {
@@ -35,6 +37,27 @@ export default function SettingsPanel({
 
   return (
     <div className="border border-paper-line bg-card rounded-2xl p-5 mb-8">
+      <h2 className="text-sm font-bold uppercase tracking-wider mb-3 text-indigo">
+        Nível JLPT
+      </h2>
+      <div className="relative mb-6 max-w-xs">
+        <GraduationCap
+          size={13}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft pointer-events-none"
+        />
+        <select
+          value={profile.jlptLevel}
+          onChange={(e) => onSetJlptLevel(e.target.value)}
+          className="border border-paper-line bg-white rounded-full pl-8 pr-3 py-1.5 text-xs w-full outline-none appearance-none"
+        >
+          {JLPT_LEVELS.map((l) => (
+            <option key={l.value} value={l.value}>
+              {l.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <h2 className="text-sm font-bold uppercase tracking-wider mb-3 text-indigo">
         Tópicos gramaticais estudados
       </h2>
