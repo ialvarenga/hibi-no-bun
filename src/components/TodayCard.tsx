@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sparkles, Loader2, ExternalLink, Eye, EyeOff, CaseSensitive } from 'lucide-react'
+import { Sparkles, Loader2, ExternalLink, Eye, EyeOff, CaseSensitive, RefreshCw } from 'lucide-react'
 import HankoStamp from './HankoStamp'
 import FuriganaText from './FuriganaText'
 import type { ReadingEntry } from '../lib/types'
@@ -75,10 +75,19 @@ export default function TodayCard({
               <CaseSensitive size={13} />
               {showFurigana ? 'Ocultar furigana' : 'Mostrar furigana'}
             </button>
+            <button
+              onClick={onGenerate}
+              disabled={generating}
+              className="border border-paper-line rounded-full px-3 py-1.5 text-xs inline-flex items-center gap-1.5 text-indigo-soft disabled:opacity-60"
+            >
+              <RefreshCw size={13} className={generating ? 'animate-spin' : undefined} />
+              {generating ? 'Gerando...' : 'Gerar novo parágrafo'}
+            </button>
           </div>
           {showTranslation && (
             <p className="text-sm mb-5 text-ink-soft">{entry.translation_pt}</p>
           )}
+          {error && <p className="text-xs mb-4 text-vermillion">{error}</p>}
 
           <div className="mb-4">
             <h3 className="text-xs font-bold uppercase tracking-wider mb-2 text-indigo">
