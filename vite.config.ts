@@ -27,7 +27,7 @@ function devApi(): Plugin {
             }
             const apiKeyHeader = req.headers['x-anthropic-api-key']
             const apiKey = Array.isArray(apiKeyHeader) ? apiKeyHeader[0] : apiKeyHeader
-            const { generateReading } = await import('./api/_lib/generateReading')
+            const { generateReading } = await import('./api/_lib/generateReading.js')
             const reading = await generateReading(topics, theme, apiKey)
             res.end(JSON.stringify(reading))
           } catch (err) {
