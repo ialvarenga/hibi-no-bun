@@ -5,19 +5,26 @@ import GrammarChipRow from './GrammarChipRow'
 import ComprehensionCheck from './ComprehensionCheck'
 import SpeakButton from './SpeakButton'
 import { resolveGrammarTopic } from '../lib/constants'
+import { scoreComprehension } from '../lib/comprehension'
 import type { ReadingEntry } from '../lib/types'
 
 interface HistoryListProps {
   entries: ReadingEntry[]
   showFurigana: boolean
   jlptLevels: string[]
+  onAnswerComprehension: (date: string, questionIndex: number, choiceIndex: number) => void
 }
 
 function grammarLabel(raw: string): string {
   return resolveGrammarTopic(raw)?.pt ?? raw
 }
 
-export default function HistoryList({ entries, showFurigana, jlptLevels }: HistoryListProps) {
+export default function HistoryList({
+  entries,
+  showFurigana,
+  jlptLevels,
+  onAnswerComprehension,
+}: HistoryListProps) {
   const [query, setQuery] = useState('')
   const [theme, setTheme] = useState('')
   const [grammar, setGrammar] = useState('')
@@ -101,40 +108,61 @@ export default function HistoryList({ entries, showFurigana, jlptLevels }: Histo
         <p className="text-sm text-ink-soft">Nenhum resultado para esse filtro.</p>
       ) : (
         <div className="flex flex-col gap-3">
-          {filtered.map((h) => (
-            <details
-              key={h.date}
-              className="border border-paper-line bg-card rounded-xl px-4 py-3"
-            >
-              <summary className="cursor-pointer text-sm flex items-center justify-between text-ink">
-                <span>
-                  {h.date} · {h.theme}
-                </span>
-              </summary>
-              <FuriganaText
-                text={h.paragraph_jp}
-                showReadings={showFurigana}
-                jlptLevels={jlptLevels}
-                vocab={h.vocab}
-                className="block font-display text-base mt-3 leading-loose text-ink"
-              />
-              <div className="mt-2">
-                <SpeakButton text={h.paragraph_jp} />
-              </div>
-              <p className="text-xs mt-2 text-ink-soft">{h.translation_pt}</p>
-              <GrammarChipRow
-                grammarUsed={h.grammar_used}
-                showFurigana={showFurigana}
-                jlptLevels={jlptLevels}
-                className="mt-2"
-              />
-              {h.comprehension && h.comprehension.length > 0 && (
-                <div className="mt-3">
-                  <ComprehensionCheck questions={h.comprehension} />
+          {filtered.map((h) => {
+            const score =
+              h.comprehension && h.comprehension.length > 0
+                ? scoreComprehension(h.comprehension, h.comprehensionAnswers ?? {})
+                : null
+            const answered = score !== null && score.answered === score.total
+
+            return (
+              <details
+                key={h.date}
+                className="border border-paper-line bg-card rounded-xl px-4 py-3"
+              >
+                <summary className="cursor-pointer text-sm flex items-center justify-between gap-2 text-ink">
+                  <span>
+                    {h.date} · {h.theme}
+                  </span>
+                  {answered && score && (
+                    <span
+                      className={`text-xs shrink-0 font-medium ${
+                        score.correct === score.total ? 'text-moss' : 'text-vermillion'
+                      }`}
+                    >
+                      {score.correct}/{score.total}
+                    </span>
+                  )}
+                </summary>
+                <FuriganaText
+                  text={h.paragraph_jp}
+                  showReadings={showFurigana}
+                  jlptLevels={jlptLevels}
+                  vocab={h.vocab}
+                  className="block font-display text-base mt-3 leading-loose text-ink"
+                />
+                <div className="mt-2">
+                  <SpeakButton text={h.paragraph_jp} />
                 </div>
-              )}
-            </details>
-          ))}
+                <p className="text-xs mt-2 text-ink-soft">{h.translation_pt}</p>
+                <GrammarChipRow
+                  grammarUsed={h.grammar_used}
+                  showFurigana={showFurigana}
+                  jlptLevels={jlptLevels}
+                  className="mt-2"
+                />
+                {h.comprehension && h.comprehension.length > 0 && (
+                  <div className="mt-3">
+                    <ComprehensionCheck
+                      questions={h.comprehension}
+                      answers={h.comprehensionAnswers ?? {}}
+                      onAnswer={(qi, ci) => onAnswerComprehension(h.date, qi, ci)}
+                    />
+                  </div>
+                )}
+              </details>
+            )
+          })}
         </div>
       )}
     </section>

@@ -179,6 +179,23 @@ export async function resetProgress(): Promise<void> {
   await Promise.all([db.clear('history'), db.clear('vocab')])
 }
 
+// Comprehension answers live on the history entry itself so they survive
+// page reloads and cache clears — previously they were only in React state
+// (ComprehensionCheck's own useState) and vanished on any remount.
+export async function saveComprehensionAnswer(
+  date: string,
+  questionIndex: number,
+  choiceIndex: number,
+): Promise<void> {
+  const db = await getDB()
+  const entry = await db.get('history', date)
+  if (!entry) return
+  await db.put('history', {
+    ...entry,
+    comprehensionAnswers: { ...entry.comprehensionAnswers, [questionIndex]: choiceIndex },
+  })
+}
+
 export async function reviewVocabCard(id: string, remembered: boolean): Promise<void> {
   const db = await getDB()
   const card = await db.get('vocab', id)

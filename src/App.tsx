@@ -17,6 +17,7 @@ import {
   reviewVocabCard,
   backfillVocabFromHistory,
   resetProgress,
+  saveComprehensionAnswer,
 } from './lib/db'
 import { generateReading } from './lib/api'
 import { exportHistoryAsJSON } from './lib/export'
@@ -124,6 +125,20 @@ export default function App() {
 
   async function handleReviewVocabCard(id: string, remembered: boolean) {
     await reviewVocabCard(id, remembered)
+  }
+
+  function handleAnswerComprehension(date: string, questionIndex: number, choiceIndex: number) {
+    setHistory((h) =>
+      h.map((entry) =>
+        entry.date === date
+          ? {
+              ...entry,
+              comprehensionAnswers: { ...entry.comprehensionAnswers, [questionIndex]: choiceIndex },
+            }
+          : entry,
+      ),
+    )
+    void saveComprehensionAnswer(date, questionIndex, choiceIndex)
   }
 
   function handleCloseVocabReview() {
@@ -263,12 +278,14 @@ export default function App() {
           showFurigana={profile.showFurigana}
           onToggleFurigana={toggleFurigana}
           jlptLevels={profile.jlptLevels}
+          onAnswerComprehension={(qi, ci) => handleAnswerComprehension(today, qi, ci)}
         />
 
         <HistoryList
           entries={pastEntries}
           showFurigana={profile.showFurigana}
           jlptLevels={profile.jlptLevels}
+          onAnswerComprehension={handleAnswerComprehension}
         />
       </div>
     </div>

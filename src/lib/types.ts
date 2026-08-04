@@ -27,6 +27,7 @@ export interface ReadingEntry {
   source_title: string
   source_url: string
   comprehension?: ComprehensionQuestion[]
+  comprehensionAnswers?: Record<number, number>
 }
 
 export interface Profile {

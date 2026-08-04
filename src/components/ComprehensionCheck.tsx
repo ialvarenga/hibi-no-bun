@@ -1,25 +1,35 @@
-import { useEffect, useState } from 'react'
 import { Check, X, HelpCircle } from 'lucide-react'
+import { scoreComprehension } from '../lib/comprehension'
 import type { ComprehensionQuestion } from '../lib/types'
 
 interface ComprehensionCheckProps {
   questions: ComprehensionQuestion[]
+  // Persisted on the reading entry itself (see db.saveComprehensionAnswer),
+  // not local component state — regenerating today's paragraph swaps in a
+  // fresh entry with no answers yet, so this naturally resets too.
+  answers: Record<number, number>
+  onAnswer: (questionIndex: number, choiceIndex: number) => void
 }
 
-export default function ComprehensionCheck({ questions }: ComprehensionCheckProps) {
-  const [answers, setAnswers] = useState<Record<number, number>>({})
-
-  // `questions` can swap out from under this component (e.g. regenerating
-  // today's paragraph reuses the same TodayCard/ComprehensionCheck instance),
-  // so stale answers from the previous set must not bleed into the new one.
-  useEffect(() => setAnswers({}), [questions])
-
+export default function ComprehensionCheck({ questions, answers, onAnswer }: ComprehensionCheckProps) {
   if (questions.length === 0) return null
+
+  const score = scoreComprehension(questions, answers)
+  const allAnswered = score.answered === score.total
 
   return (
     <div className="mb-4">
-      <h3 className="text-xs font-bold uppercase tracking-wider mb-2 text-indigo inline-flex items-center gap-1.5">
-        <HelpCircle size={13} /> Verifique sua compreensão
+      <h3 className="text-xs font-bold uppercase tracking-wider mb-2 text-indigo flex items-center gap-1.5">
+        <HelpCircle size={13} className="shrink-0" /> Verifique sua compreensão
+        {allAnswered && (
+          <span
+            className={`ml-auto normal-case tracking-normal font-medium ${
+              score.correct === score.total ? 'text-moss' : 'text-vermillion'
+            }`}
+          >
+            {score.correct}/{score.total} corretas
+          </span>
+        )}
       </h3>
       <div className="grid gap-3">
         {questions.map((q, qi) => {
@@ -44,9 +54,7 @@ export default function ComprehensionCheck({ questions }: ComprehensionCheckProp
                   return (
                     <button
                       key={ci}
-                      onClick={() =>
-                        !answered && setAnswers((a) => ({ ...a, [qi]: ci }))
-                      }
+                      onClick={() => !answered && onAnswer(qi, ci)}
                       disabled={answered}
                       className={`text-left border rounded-lg px-3 py-2 text-xs flex items-center justify-between gap-2 disabled:opacity-100 ${stateClasses}`}
                     >

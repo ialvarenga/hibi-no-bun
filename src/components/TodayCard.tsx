@@ -15,6 +15,7 @@ interface TodayCardProps {
   showFurigana: boolean
   onToggleFurigana: () => void
   jlptLevels: string[]
+  onAnswerComprehension: (questionIndex: number, choiceIndex: number) => void
 }
 
 export default function TodayCard({
@@ -25,6 +26,7 @@ export default function TodayCard({
   showFurigana,
   onToggleFurigana,
   jlptLevels,
+  onAnswerComprehension,
 }: TodayCardProps) {
   const [showTranslation, setShowTranslation] = useState(false)
 
@@ -123,7 +125,11 @@ export default function TodayCard({
             className="mb-4"
           />
 
-          <ComprehensionCheck questions={entry.comprehension ?? []} />
+          <ComprehensionCheck
+            questions={entry.comprehension ?? []}
+            answers={entry.comprehensionAnswers ?? {}}
+            onAnswer={onAnswerComprehension}
+          />
 
           {entry.source_url && (
             <a

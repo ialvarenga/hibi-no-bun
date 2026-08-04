@@ -37,7 +37,7 @@ function buildPrompt(
   return `Você gera conteúdo de leitura diária para quem estuda japonês (nível aproximado JLPT ${jlptLevel}).
 
 1. Use a ferramenta de busca na web para encontrar UM artigo, notícia ou post real e atualmente acessível, em japonês, sobre o tema: "${theme}".${avoidList}
-2. Escreva um parágrafo ORIGINAL em japonês (entre 90 e 150 caracteres, contando só o texto japonês, sem as leituras entre colchetes do passo 3), inspirado/parafraseado nesse conteúdo (não copie trechos literais da fonte), incorporando naturalmente pelo menos 2 destes pontos gramaticais: ${grammarList}.
+2. Escreva um parágrafo ORIGINAL em japonês (entre 90 e 150 caracteres, contando só o texto japonês, sem as leituras entre colchetes do passo 3), inspirado/parafraseado nesse conteúdo (não copie trechos literais da fonte), incorporando naturalmente pelo menos 2 destes pontos gramaticais: ${grammarList}. Prefira vocabulário e kanji do nível JLPT ${jlptLevel} ou mais fáceis; só use kanji de nível mais avançado quando for essencial e sem alternativa natural no mesmo nível (ex.: nomes próprios, termos específicos do tema) — e nesse caso o passo 3 (furigana) é ainda mais importante.
 3. Adicione furigana: logo após CADA palavra ou trecho contendo kanji, insira a leitura em hiragana entre colchetes, no formato 漢字[かんじ]. Não anote hiragana, katakana nem pontuação — só trechos com kanji. Exemplo: 私[わたし]は日本語[にほんご]を勉強[べんきょう]しています。
    ISSO INCLUI, SEM EXCEÇÃO: números escritos em kanji (一つ, 二人, 三年 etc.), nomes próprios e de lugares (東京[とうきょう], 日本[にほん]), kanji únicos comuns (今日[きょう], 人[ひと]) e qualquer kanji que se repita no texto — cada ocorrência precisa da sua própria anotação, mesmo repetida. NENHUM caractere kanji pode aparecer sem colchetes logo em seguida. Confira isso mentalmente antes de responder, mas NÃO escreva essa checagem, rascunho ou qualquer outro texto de raciocínio na resposta.
 4. Crie 2 perguntas de múltipla escolha EM JAPONÊS (pergunta e as 4 alternativas, todas em japonês, sem furigana) para checar a compreensão do parágrafo (não do artigo original), cada uma com exatamente 4 alternativas plausíveis e só uma correta. Use um japonês no mesmo nível (JLPT ${jlptLevel}) do parágrafo.
@@ -54,6 +54,21 @@ function messageText(message: Anthropic.Message): string {
     .trim()
 }
 
+// Mirrors src/lib/furigana.ts's FURIGANA_PATTERN — kept as a local copy since
+// api/ and src/ ship as separate bundles (Vercel Functions vs. the Vite app).
+const FURIGANA_ANNOTATED_RUN = /[一-鿿々〻]+[ぁ-ん]*\[[^[\]]+\]/g
+const KANJI_CHAR = /[一-鿿々〻]/
+
+// Finds a kanji left over after stripping every properly-annotated run, i.e.
+// a kanji the model forgot to give a furigana reading to. The frontend has
+// no way to recover a missing reading on its own — a kanji above the
+// learner's studied level with no furigana is unreadable to them — so this
+// has to be caught here and sent back to the model for a fix.
+function findUnannotatedKanji(paragraphJp: string): string | null {
+  const stripped = paragraphJp.replace(FURIGANA_ANNOTATED_RUN, '')
+  return stripped.match(KANJI_CHAR)?.[0] ?? null
+}
+
 function extractJSON(message: Anthropic.Message, topics: TopicInput[]): GeneratedReading {
   const text = messageText(message)
   const cleaned = text.replace(/```json|```/g, '').trim()
@@ -65,6 +80,10 @@ function extractJSON(message: Anthropic.Message, topics: TopicInput[]): Generate
   const parsed = JSON.parse(cleaned.slice(start, end + 1)) as GeneratedReading
   if (!parsed.paragraph_jp || !parsed.translation_pt) {
     throw new Error('JSON retornado está incompleto')
+  }
+  const missedKanji = findUnannotatedKanji(parsed.paragraph_jp)
+  if (missedKanji) {
+    throw new Error(`Kanji sem furigana no parágrafo: ${missedKanji}`)
   }
   // Drop any id the model invented or mistyped — grammar_used only ever
   // renders an explanation for ids we recognize, so a bad id here should
@@ -120,22 +139,25 @@ export async function generateReading(
     return extractJSON(response, topics)
   } catch (err) {
     // The model occasionally ignores the "JSON only" instruction (e.g. it
-    // apologizes in prose when the search comes back thin). Give it one
-    // more chance, explicitly pointing out the mistake, before giving up.
+    // apologizes in prose when the search comes back thin), or misses a
+    // furigana annotation on some kanji. Give it one more chance, explicitly
+    // pointing out the mistake, before giving up.
     console.error(
-      'generateReading: first attempt did not return valid JSON, retrying. Raw text:',
+      'generateReading: first attempt failed, retrying. Reason:',
+      err instanceof Error ? err.message : err,
+      'Raw text:',
       messageText(response).slice(0, 500),
     )
+    const correction =
+      err instanceof Error && err.message.startsWith('Kanji sem furigana')
+        ? `Sua resposta anterior deixou pelo menos um kanji (${err.message.split(': ')[1]}) sem a leitura em colchetes logo depois. Reescreva o parágrafo revisando TODO caractere kanji, um por um, e responda de novo APENAS com o JSON completo e corrigido, no mesmo formato exato especificado antes.`
+        : 'Sua resposta anterior não seguiu o formato pedido. Responda agora APENAS com o JSON válido no formato exato especificado antes, sem nenhum texto, explicação ou markdown adicional.'
     const retryResponse = await runToCompletion(client, {
       ...params,
       messages: [
         ...params.messages,
         { role: 'assistant', content: response.content },
-        {
-          role: 'user',
-          content:
-            'Sua resposta anterior não seguiu o formato pedido. Responda agora APENAS com o JSON válido no formato exato especificado antes, sem nenhum texto, explicação ou markdown adicional.',
-        },
+        { role: 'user', content: correction },
       ],
     })
     try {
