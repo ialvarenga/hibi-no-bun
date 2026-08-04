@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
+import { BookOpen } from 'lucide-react'
 import Header from './components/Header'
 import StreakStamps from './components/StreakStamps'
 import SettingsPanel from './components/SettingsPanel'
 import TodayCard from './components/TodayCard'
 import HistoryList from './components/HistoryList'
+import VocabReview from './components/VocabReview'
 import { DEFAULT_TOPICS } from './lib/constants'
-import { loadProfile, saveProfile, loadHistory, saveEntry } from './lib/db'
+import {
+  loadProfile,
+  saveProfile,
+  loadHistory,
+  saveEntry,
+  loadDueVocabCards,
+  countDueVocabCards,
+  reviewVocabCard,
+  backfillVocabFromHistory,
+} from './lib/db'
 import { generateReading } from './lib/api'
 import { exportHistoryAsJSON } from './lib/export'
 import { todayStr } from './lib/date'
@@ -14,7 +25,7 @@ import {
   requestNotificationPermission,
   maybeShowDailyReminder,
 } from './lib/notifications'
-import type { Profile, ReadingEntry } from './lib/types'
+import type { Profile, ReadingEntry, VocabCard } from './lib/types'
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
@@ -26,6 +37,9 @@ export default function App() {
   const [notificationPermission, setNotificationPermission] = useState<
     NotificationPermission | 'unsupported'
   >('default')
+  const [vocabReviewOpen, setVocabReviewOpen] = useState(false)
+  const [dueVocabCards, setDueVocabCards] = useState<VocabCard[]>([])
+  const [dueVocabCount, setDueVocabCount] = useState(0)
 
   const today = todayStr()
   const todayEntry = useMemo(
@@ -40,6 +54,7 @@ export default function App() {
       const [p, h] = await Promise.all([loadProfile(), loadHistory()])
       setProfile(p)
       setHistory(h)
+      await backfillVocabFromHistory()
       setLoaded(true)
       setNotificationPermission(getNotificationPermission())
     })()
@@ -48,6 +63,11 @@ export default function App() {
   useEffect(() => {
     if (!loaded) return
     maybeShowDailyReminder(!!todayEntry)
+  }, [loaded, todayEntry])
+
+  useEffect(() => {
+    if (!loaded) return
+    void countDueVocabCards().then(setDueVocabCount)
   }, [loaded, todayEntry])
 
   const persistProfile = useCallback((next: Profile) => {
@@ -80,6 +100,21 @@ export default function App() {
       : [...profile.allThemes, name]
     const themes = profile.themes.includes(name) ? profile.themes : [...profile.themes, name]
     persistProfile({ ...profile, allThemes, themes })
+  }
+
+  async function handleOpenVocabReview() {
+    const cards = await loadDueVocabCards()
+    setDueVocabCards(cards)
+    setVocabReviewOpen(true)
+  }
+
+  async function handleReviewVocabCard(id: string, remembered: boolean) {
+    await reviewVocabCard(id, remembered)
+  }
+
+  function handleCloseVocabReview() {
+    setVocabReviewOpen(false)
+    void countDueVocabCards().then(setDueVocabCount)
   }
 
   async function handleRequestNotifications() {
@@ -143,6 +178,29 @@ export default function App() {
         />
 
         <StreakStamps completedDates={completedDates} />
+
+        {dueVocabCount > 0 && !vocabReviewOpen && (
+          <button
+            onClick={() => void handleOpenVocabReview()}
+            className="w-full mb-8 border border-paper-line bg-card rounded-2xl px-5 py-4 flex items-center justify-between text-left hover:bg-paper transition-colors"
+          >
+            <span className="text-sm text-ink inline-flex items-center gap-2">
+              <BookOpen size={16} className="text-indigo" />
+              {dueVocabCount} {dueVocabCount === 1 ? 'palavra' : 'palavras'} para revisar hoje
+            </span>
+            <span className="text-xs underline underline-offset-2 text-indigo-soft">
+              Revisar
+            </span>
+          </button>
+        )}
+
+        {vocabReviewOpen && (
+          <VocabReview
+            cards={dueVocabCards}
+            onReview={(id, remembered) => void handleReviewVocabCard(id, remembered)}
+            onClose={handleCloseVocabReview}
+          />
+        )}
 
         {settingsOpen && (
           <SettingsPanel

@@ -29,6 +29,19 @@ export interface Profile {
   showFurigana: boolean
 }
 
+export interface VocabCard {
+  id: string // `${word}::${reading}`
+  word: string
+  reading: string
+  meaning_pt: string
+  box: number // Leitner box, 0-5
+  due: string // YYYY-MM-DD, next review date
+  reps: number
+  lapses: number
+  firstSeen: string
+  lastReviewed: string | null
+}
+
 export interface ExportedData {
   exported_at: string
   profile: Profile
