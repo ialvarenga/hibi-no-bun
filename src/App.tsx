@@ -122,15 +122,6 @@ export default function App() {
     persistProfile({ ...profile, shareGenerations: !profile.shareGenerations })
   }
 
-  function addCustomTheme(name: string) {
-    if (!profile) return
-    const allThemes = profile.allThemes.includes(name)
-      ? profile.allThemes
-      : [...profile.allThemes, name]
-    const themes = profile.themes.includes(name) ? profile.themes : [...profile.themes, name]
-    persistProfile({ ...profile, allThemes, themes })
-  }
-
   async function handleOpenVocabReview() {
     const cards = await loadDueVocabCards()
     setDueVocabCards(cards)
@@ -306,7 +297,6 @@ export default function App() {
             profile={profile}
             onToggleTopic={toggleTopic}
             onToggleTheme={toggleTheme}
-            onAddCustomTheme={addCustomTheme}
             onSetApiKey={setApiKey}
             onToggleJlptLevel={toggleJlptLevel}
             onToggleShareGenerations={toggleShareGenerations}

@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { waitUntil } from '@vercel/functions'
 import { generateReading, type TopicInput } from './_lib/generateReading'
 import { saveSharedEntry } from './_lib/sharedDb'
+import { ALLOWED_THEMES, ALLOWED_JLPT_LEVELS, CANONICAL_TOPICS } from './_lib/constants'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -22,15 +23,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return
   }
 
+  // Every one of these values is spliced into the LLM prompt, so each is
+  // resolved against a fixed server-side allow-list rather than trusted
+  // as-is — a request can't smuggle arbitrary text into the prompt through
+  // theme, topics, or jlptLevel, even by calling this endpoint directly.
+  if (!ALLOWED_THEMES.includes(theme)) {
+    res.status(400).json({ error: 'Tema inválido' })
+    return
+  }
+
+  const canonicalTopics: TopicInput[] = []
+  for (const t of topics) {
+    const canonical = t && typeof t.id === 'string' ? CANONICAL_TOPICS[t.id] : undefined
+    if (!canonical) {
+      res.status(400).json({ error: 'Tópico inválido' })
+      return
+    }
+    canonicalTopics.push({ id: t.id, jp: canonical.jp, pt: canonical.pt })
+  }
+
+  if (jlptLevel !== undefined && !ALLOWED_JLPT_LEVELS.includes(String(jlptLevel).trim())) {
+    res.status(400).json({ error: 'Nível JLPT inválido' })
+    return
+  }
+
   const apiKeyHeader = req.headers['x-anthropic-api-key']
   const apiKey = Array.isArray(apiKeyHeader) ? apiKeyHeader[0] : apiKeyHeader
 
   try {
     const reading = await generateReading(
-      topics,
+      canonicalTopics,
       theme,
       apiKey,
-      Array.isArray(recentTopics) ? recentTopics.filter((t) => typeof t === 'string') : [],
+      Array.isArray(recentTopics)
+        ? recentTopics
+            .filter((t) => typeof t === 'string')
+            .slice(0, 10)
+            .map((t) => t.slice(0, 200))
+        : [],
       typeof jlptLevel === 'string' && jlptLevel.trim() ? jlptLevel.trim() : undefined,
     )
     res.status(200).json(reading)
@@ -44,7 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ...reading,
           date: new Date().toISOString().slice(0, 10),
           theme,
-          topicsUsed: topics.map((t) => t.pt),
+          topicsUsed: canonicalTopics.map((t) => t.pt),
           jlptLevel,
         }).catch((err) => {
           console.error('saveSharedEntry error:', err)

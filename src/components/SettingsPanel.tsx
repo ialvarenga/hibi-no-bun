@@ -1,13 +1,12 @@
 import { useState } from 'react'
-import { Check, Plus, Bell, BellOff, Eye, EyeOff, KeyRound, Trash2, Users } from 'lucide-react'
-import { DEFAULT_TOPICS, JLPT_LEVELS } from '../lib/constants'
+import { Check, Bell, BellOff, Eye, EyeOff, KeyRound, Trash2, Users } from 'lucide-react'
+import { DEFAULT_TOPICS, DEFAULT_THEMES, JLPT_LEVELS } from '../lib/constants'
 import type { Profile } from '../lib/types'
 
 interface SettingsPanelProps {
   profile: Profile
   onToggleTopic: (id: string) => void
   onToggleTheme: (name: string) => void
-  onAddCustomTheme: (name: string) => void
   onSetApiKey: (key: string) => void
   onToggleJlptLevel: (level: string) => void
   onToggleShareGenerations: () => void
@@ -20,7 +19,6 @@ export default function SettingsPanel({
   profile,
   onToggleTopic,
   onToggleTheme,
-  onAddCustomTheme,
   onSetApiKey,
   onToggleJlptLevel,
   onToggleShareGenerations,
@@ -28,16 +26,8 @@ export default function SettingsPanel({
   onRequestNotifications,
   onResetData,
 }: SettingsPanelProps) {
-  const [customThemeInput, setCustomThemeInput] = useState('')
   const [apiKeyInput, setApiKeyInput] = useState(profile.apiKey)
   const [showApiKey, setShowApiKey] = useState(false)
-
-  function handleAddTheme() {
-    const value = customThemeInput.trim()
-    if (!value) return
-    onAddCustomTheme(value)
-    setCustomThemeInput('')
-  }
 
   function handleResetClick() {
     const confirmed = window.confirm(
@@ -98,8 +88,8 @@ export default function SettingsPanel({
       <h2 className="text-sm font-bold uppercase tracking-wider mb-3 text-indigo">
         Temas de interesse
       </h2>
-      <div className="flex flex-wrap gap-2 mb-3">
-        {profile.allThemes.map((name) => {
+      <div className="flex flex-wrap gap-2 mb-6">
+        {DEFAULT_THEMES.map((name) => {
           const on = profile.themes.includes(name)
           return (
             <button
@@ -115,21 +105,6 @@ export default function SettingsPanel({
             </button>
           )
         })}
-      </div>
-      <div className="flex gap-2 mb-6">
-        <input
-          value={customThemeInput}
-          onChange={(e) => setCustomThemeInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAddTheme()}
-          placeholder="Adicionar tema..."
-          className="border border-paper-line bg-white rounded-full px-3 py-1.5 text-xs flex-1 outline-none"
-        />
-        <button
-          onClick={handleAddTheme}
-          className="bg-indigo text-white rounded-full px-3 py-1.5 text-xs flex items-center gap-1 shrink-0"
-        >
-          <Plus size={12} /> Adicionar
-        </button>
       </div>
 
       <h2 className="text-sm font-bold uppercase tracking-wider mb-3 text-indigo">

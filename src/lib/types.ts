@@ -33,7 +33,6 @@ export interface ReadingEntry {
 export interface Profile {
   studied: Record<string, boolean>
   themes: string[]
-  allThemes: string[]
   showFurigana: boolean
   apiKey: string
   jlptLevels: string[]

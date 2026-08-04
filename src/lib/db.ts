@@ -69,12 +69,23 @@ function defaultProfile(): Profile {
   return {
     studied: Object.fromEntries(DEFAULT_STUDIED_IDS.map((id) => [id, true])),
     themes: DEFAULT_SELECTED_THEMES,
-    allThemes: DEFAULT_THEMES,
     showFurigana: true,
     apiKey: '',
     jlptLevels: DEFAULT_JLPT_LEVELS,
     shareGenerations: false,
   }
+}
+
+// Custom themes were removed as a generation-prompt injection guardrail —
+// profiles saved before that (or restored from an old export) may still
+// carry free-text entries in `themes`. Drop anything outside the fixed
+// list so a stale entry can't get silently sent to /api/generate (where
+// it would now just be rejected) or, worse, leave the user with zero
+// selected themes.
+function sanitizeThemes(themes: string[]): string[] {
+  const allowed = new Set(DEFAULT_THEMES)
+  const filtered = themes.filter((t) => allowed.has(t))
+  return filtered.length > 0 ? filtered : DEFAULT_SELECTED_THEMES
 }
 
 // Profiles saved before jlptLevels was a multi-select array may carry a
@@ -93,11 +104,12 @@ export async function loadProfile(): Promise<Profile> {
   // Merge over defaults so profiles saved before a field was added (e.g.
   // showFurigana) still come back fully populated.
   const migratedJlptLevels = stored ? migrateLegacyJlptLevel(stored) : null
-  return {
+  const merged = {
     ...defaultProfile(),
     ...stored,
     ...(migratedJlptLevels ? { jlptLevels: migratedJlptLevels } : {}),
   }
+  return { ...merged, themes: sanitizeThemes(merged.themes) }
 }
 
 export async function saveProfile(profile: Profile): Promise<void> {
