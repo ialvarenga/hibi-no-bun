@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Plus, Bell, BellOff, Eye, EyeOff, KeyRound, Trash2 } from 'lucide-react'
+import { Check, Plus, Bell, BellOff, Eye, EyeOff, KeyRound, Trash2, Users } from 'lucide-react'
 import { DEFAULT_TOPICS, JLPT_LEVELS } from '../lib/constants'
 import type { Profile } from '../lib/types'
 
@@ -10,6 +10,7 @@ interface SettingsPanelProps {
   onAddCustomTheme: (name: string) => void
   onSetApiKey: (key: string) => void
   onToggleJlptLevel: (level: string) => void
+  onToggleShareGenerations: () => void
   notificationPermission: NotificationPermission | 'unsupported'
   onRequestNotifications: () => void
   onResetData: () => void
@@ -22,6 +23,7 @@ export default function SettingsPanel({
   onAddCustomTheme,
   onSetApiKey,
   onToggleJlptLevel,
+  onToggleShareGenerations,
   notificationPermission,
   onRequestNotifications,
   onResetData,
@@ -184,6 +186,27 @@ export default function SettingsPanel({
           </button>
         </div>
       </div>
+
+      <h2 className="text-sm font-bold uppercase tracking-wider mb-3 mt-6 text-indigo">
+        Comunidade
+      </h2>
+      <p className="text-xs text-ink-soft mb-2">
+        Quando ativado, cada parágrafo que você gerar também é salvo em um banco compartilhado,
+        para que outras pessoas possam recebê-lo em "Pergunta da comunidade".
+      </p>
+      <button
+        onClick={onToggleShareGenerations}
+        className={`border rounded-full px-3 py-1.5 text-xs inline-flex items-center gap-1.5 transition-colors ${
+          profile.shareGenerations
+            ? 'bg-indigo border-indigo text-white'
+            : 'bg-transparent border-paper-line text-ink-soft'
+        }`}
+      >
+        {profile.shareGenerations ? <Check size={12} /> : <Users size={13} />}
+        {profile.shareGenerations
+          ? 'Compartilhando meus parágrafos'
+          : 'Compartilhar meus parágrafos gerados'}
+      </button>
 
       <h2 className="text-sm font-bold uppercase tracking-wider mb-3 mt-6 text-vermillion">
         Zona de perigo

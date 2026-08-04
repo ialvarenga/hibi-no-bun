@@ -7,10 +7,10 @@ import {
   JLPT_LEVELS,
 } from './constants'
 import { todayStr, addDaysStr } from './date'
-import type { Profile, ReadingEntry, VocabCard } from './types'
+import type { Profile, ReadingEntry, SharedEntry, VocabCard } from './types'
 
 const DB_NAME = 'jp-daily-reading'
-const DB_VERSION = 2
+const DB_VERSION = 3
 const PROFILE_KEY = 'profile'
 
 // Leitner box -> days until next review. New/failed cards land in box 0.
@@ -30,6 +30,10 @@ interface AppDB extends DBSchema {
     key: string // `${word}::${reading}`
     value: VocabCard
   }
+  shared: {
+    key: string // server-assigned id
+    value: SharedEntry
+  }
 }
 
 let dbPromise: Promise<IDBPDatabase<AppDB>> | null = null
@@ -47,6 +51,9 @@ function getDB(): Promise<IDBPDatabase<AppDB>> {
         }
         if (!db.objectStoreNames.contains('vocab')) {
           db.createObjectStore('vocab', { keyPath: 'id' })
+        }
+        if (!db.objectStoreNames.contains('shared')) {
+          db.createObjectStore('shared', { keyPath: 'id' })
         }
       },
     })
@@ -66,6 +73,7 @@ function defaultProfile(): Profile {
     showFurigana: true,
     apiKey: '',
     jlptLevels: DEFAULT_JLPT_LEVELS,
+    shareGenerations: false,
   }
 }
 
@@ -191,6 +199,38 @@ export async function saveComprehensionAnswer(
   const entry = await db.get('history', date)
   if (!entry) return
   await db.put('history', {
+    ...entry,
+    comprehensionAnswers: { ...entry.comprehensionAnswers, [questionIndex]: choiceIndex },
+  })
+}
+
+export async function loadShared(): Promise<SharedEntry[]> {
+  const db = await getDB()
+  const all = await db.getAll('shared')
+  return all.sort((a, b) => (a.retrievedAt < b.retrievedAt ? 1 : -1))
+}
+
+// Ids already retrieved, sent to the server so it can avoid re-serving the
+// same entries to this device.
+export async function loadSharedIds(): Promise<string[]> {
+  const db = await getDB()
+  return db.getAllKeys('shared')
+}
+
+export async function saveSharedEntry(entry: SharedEntry): Promise<void> {
+  const db = await getDB()
+  await db.put('shared', entry)
+}
+
+export async function saveSharedComprehensionAnswer(
+  id: string,
+  questionIndex: number,
+  choiceIndex: number,
+): Promise<void> {
+  const db = await getDB()
+  const entry = await db.get('shared', id)
+  if (!entry) return
+  await db.put('shared', {
     ...entry,
     comprehensionAnswers: { ...entry.comprehensionAnswers, [questionIndex]: choiceIndex },
   })

@@ -5,6 +5,7 @@ import StreakStamps from './components/StreakStamps'
 import SettingsPanel from './components/SettingsPanel'
 import TodayCard from './components/TodayCard'
 import HistoryList from './components/HistoryList'
+import SharedCard from './components/SharedCard'
 import VocabReview from './components/VocabReview'
 import { DEFAULT_TOPICS, JLPT_LEVELS } from './lib/constants'
 import {
@@ -18,8 +19,12 @@ import {
   backfillVocabFromHistory,
   resetProgress,
   saveComprehensionAnswer,
+  loadShared,
+  loadSharedIds,
+  saveSharedEntry,
+  saveSharedComprehensionAnswer,
 } from './lib/db'
-import { generateReading } from './lib/api'
+import { generateReading, retrieveShared } from './lib/api'
 import { exportHistoryAsJSON } from './lib/export'
 import { todayStr } from './lib/date'
 import {
@@ -27,7 +32,7 @@ import {
   requestNotificationPermission,
   maybeShowDailyReminder,
 } from './lib/notifications'
-import type { Profile, ReadingEntry, VocabCard } from './lib/types'
+import type { Profile, ReadingEntry, SharedEntry, VocabCard } from './lib/types'
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
@@ -42,6 +47,9 @@ export default function App() {
   const [vocabReviewOpen, setVocabReviewOpen] = useState(false)
   const [dueVocabCards, setDueVocabCards] = useState<VocabCard[]>([])
   const [dueVocabCount, setDueVocabCount] = useState(0)
+  const [sharedEntries, setSharedEntries] = useState<SharedEntry[]>([])
+  const [retrievingShared, setRetrievingShared] = useState(false)
+  const [sharedError, setSharedError] = useState<string | null>(null)
 
   const today = todayStr()
   const todayEntry = useMemo(
@@ -53,9 +61,10 @@ export default function App() {
 
   useEffect(() => {
     ;(async () => {
-      const [p, h] = await Promise.all([loadProfile(), loadHistory()])
+      const [p, h, s] = await Promise.all([loadProfile(), loadHistory(), loadShared()])
       setProfile(p)
       setHistory(h)
+      setSharedEntries(s)
       await backfillVocabFromHistory()
       setLoaded(true)
       setNotificationPermission(getNotificationPermission())
@@ -108,6 +117,11 @@ export default function App() {
     persistProfile({ ...profile, jlptLevels })
   }
 
+  function toggleShareGenerations() {
+    if (!profile) return
+    persistProfile({ ...profile, shareGenerations: !profile.shareGenerations })
+  }
+
   function addCustomTheme(name: string) {
     if (!profile) return
     const allThemes = profile.allThemes.includes(name)
@@ -139,6 +153,36 @@ export default function App() {
       ),
     )
     void saveComprehensionAnswer(date, questionIndex, choiceIndex)
+  }
+
+  async function handleRetrieveShared() {
+    setSharedError(null)
+    setRetrievingShared(true)
+    try {
+      const excludeIds = await loadSharedIds()
+      const entry = await retrieveShared(excludeIds)
+      await saveSharedEntry(entry)
+      setSharedEntries((s) => [entry, ...s.filter((x) => x.id !== entry.id)])
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'erro desconhecido'
+      setSharedError(`Não consegui buscar uma pergunta da comunidade (${message}).`)
+    } finally {
+      setRetrievingShared(false)
+    }
+  }
+
+  function handleAnswerSharedComprehension(id: string, questionIndex: number, choiceIndex: number) {
+    setSharedEntries((entries) =>
+      entries.map((entry) =>
+        entry.id === id
+          ? {
+              ...entry,
+              comprehensionAnswers: { ...entry.comprehensionAnswers, [questionIndex]: choiceIndex },
+            }
+          : entry,
+      ),
+    )
+    void saveSharedComprehensionAnswer(id, questionIndex, choiceIndex)
   }
 
   function handleCloseVocabReview() {
@@ -195,6 +239,7 @@ export default function App() {
           theme,
           recentTopics,
           jlptLevel,
+          share: profile.shareGenerations,
         },
         profile.apiKey,
       )
@@ -264,6 +309,7 @@ export default function App() {
             onAddCustomTheme={addCustomTheme}
             onSetApiKey={setApiKey}
             onToggleJlptLevel={toggleJlptLevel}
+            onToggleShareGenerations={toggleShareGenerations}
             notificationPermission={notificationPermission}
             onRequestNotifications={() => void handleRequestNotifications()}
             onResetData={() => void handleResetData()}
@@ -286,6 +332,16 @@ export default function App() {
           showFurigana={profile.showFurigana}
           jlptLevels={profile.jlptLevels}
           onAnswerComprehension={handleAnswerComprehension}
+        />
+
+        <SharedCard
+          entries={sharedEntries}
+          retrieving={retrievingShared}
+          error={sharedError}
+          onRetrieve={() => void handleRetrieveShared()}
+          showFurigana={profile.showFurigana}
+          jlptLevels={profile.jlptLevels}
+          onAnswerComprehension={handleAnswerSharedComprehension}
         />
       </div>
     </div>

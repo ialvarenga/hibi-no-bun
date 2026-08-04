@@ -37,6 +37,26 @@ export interface Profile {
   showFurigana: boolean
   apiKey: string
   jlptLevels: string[]
+  shareGenerations: boolean
+}
+
+// A reading retrieved from the shared community pool (GET /api/shared).
+// Kept separate from ReadingEntry/history: it belongs to whoever generated
+// it, not to "today" for the person who retrieved it.
+export interface SharedEntry {
+  id: string
+  retrievedAt: string
+  date: string
+  theme: string
+  topicsUsed: string[]
+  paragraph_jp: string
+  translation_pt: string
+  vocab: VocabItem[]
+  grammar_used: string[]
+  source_title: string
+  source_url: string
+  comprehension?: ComprehensionQuestion[]
+  comprehensionAnswers?: Record<number, number>
 }
 
 export interface VocabCard {

@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: hibi-no-ichibun-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hibi
+      POSTGRES_PASSWORD: hibi
+      POSTGRES_DB: hibi_no_ichibun
+    ports:
+      - '5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hibi -d hibi_no_ichibun']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:
