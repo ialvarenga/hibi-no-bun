@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Plus, Bell, BellOff, Eye, EyeOff, KeyRound } from 'lucide-react'
+import { Check, Plus, Bell, BellOff, Eye, EyeOff, KeyRound, Trash2 } from 'lucide-react'
 import { DEFAULT_TOPICS, JLPT_LEVELS } from '../lib/constants'
 import type { Profile } from '../lib/types'
 
@@ -12,6 +12,7 @@ interface SettingsPanelProps {
   onToggleJlptLevel: (level: string) => void
   notificationPermission: NotificationPermission | 'unsupported'
   onRequestNotifications: () => void
+  onResetData: () => void
 }
 
 export default function SettingsPanel({
@@ -23,6 +24,7 @@ export default function SettingsPanel({
   onToggleJlptLevel,
   notificationPermission,
   onRequestNotifications,
+  onResetData,
 }: SettingsPanelProps) {
   const [customThemeInput, setCustomThemeInput] = useState('')
   const [apiKeyInput, setApiKeyInput] = useState(profile.apiKey)
@@ -33,6 +35,13 @@ export default function SettingsPanel({
     if (!value) return
     onAddCustomTheme(value)
     setCustomThemeInput('')
+  }
+
+  function handleResetClick() {
+    const confirmed = window.confirm(
+      'Isso vai apagar todo o histórico de parágrafos gerados e o progresso de revisão de vocabulário. Essa ação não pode ser desfeita. Continuar?',
+    )
+    if (confirmed) onResetData()
   }
 
   return (
@@ -175,6 +184,21 @@ export default function SettingsPanel({
           </button>
         </div>
       </div>
+
+      <h2 className="text-sm font-bold uppercase tracking-wider mb-3 mt-6 text-vermillion">
+        Zona de perigo
+      </h2>
+      <p className="text-xs text-ink-soft mb-2">
+        Apaga o histórico de parágrafos gerados e o progresso de revisão de vocabulário
+        deste dispositivo. Suas configurações (temas, tópicos, nível JLPT, chave de API)
+        são mantidas.
+      </p>
+      <button
+        onClick={handleResetClick}
+        className="border border-vermillion/40 text-vermillion rounded-full px-3 py-1.5 text-xs inline-flex items-center gap-1.5"
+      >
+        <Trash2 size={13} /> Apagar todo o progresso
+      </button>
     </div>
   )
 }

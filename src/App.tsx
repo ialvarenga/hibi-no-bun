@@ -16,6 +16,7 @@ import {
   countDueVocabCards,
   reviewVocabCard,
   backfillVocabFromHistory,
+  resetProgress,
 } from './lib/db'
 import { generateReading } from './lib/api'
 import { exportHistoryAsJSON } from './lib/export'
@@ -135,6 +136,15 @@ export default function App() {
     setNotificationPermission(permission)
   }
 
+  async function handleResetData() {
+    await resetProgress()
+    setHistory([])
+    setDueVocabCards([])
+    setDueVocabCount(0)
+    setVocabReviewOpen(false)
+    setError(null)
+  }
+
   async function handleGenerate() {
     if (!profile) return
     setError(null)
@@ -241,6 +251,7 @@ export default function App() {
             onToggleJlptLevel={toggleJlptLevel}
             notificationPermission={notificationPermission}
             onRequestNotifications={() => void handleRequestNotifications()}
+            onResetData={() => void handleResetData()}
           />
         )}
 

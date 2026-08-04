@@ -172,6 +172,13 @@ export async function countDueVocabCards(): Promise<number> {
   return all.reduce((n, c) => (c.due <= today ? n + 1 : n), 0)
 }
 
+// Wipes reading history and vocab review progress, keeping the profile
+// (settings, themes, API key) untouched.
+export async function resetProgress(): Promise<void> {
+  const db = await getDB()
+  await Promise.all([db.clear('history'), db.clear('vocab')])
+}
+
 export async function reviewVocabCard(id: string, remembered: boolean): Promise<void> {
   const db = await getDB()
   const card = await db.get('vocab', id)
