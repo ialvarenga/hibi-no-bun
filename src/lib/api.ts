@@ -3,6 +3,7 @@ import type { GrammarTopic, VocabItem } from './types'
 export interface GenerateRequest {
   topics: Pick<GrammarTopic, 'jp' | 'pt'>[]
   theme: string
+  recentTopics?: string[]
 }
 
 export interface GenerateResponse {

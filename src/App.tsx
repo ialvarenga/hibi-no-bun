@@ -143,12 +143,17 @@ export default function App() {
 
     setGenerating(true)
     const theme = profile.themes[Math.floor(Math.random() * profile.themes.length)]
+    const recentTopics = history
+      .map((h) => h.source_title)
+      .filter((t): t is string => !!t)
+      .slice(0, 20)
 
     try {
       const result = await generateReading(
         {
           topics: studiedTopics.map((t) => ({ jp: t.jp, pt: t.pt })),
           theme,
+          recentTopics,
         },
         profile.apiKey,
       )
