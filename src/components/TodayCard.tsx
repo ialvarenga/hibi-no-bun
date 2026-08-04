@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Sparkles, Loader2, ExternalLink, Eye, EyeOff, CaseSensitive, RefreshCw } from 'lucide-react'
 import HankoStamp from './HankoStamp'
 import FuriganaText from './FuriganaText'
-import GrammarChip from './GrammarChip'
+import GrammarChipRow from './GrammarChipRow'
 import ComprehensionCheck from './ComprehensionCheck'
 import SpeakButton from './SpeakButton'
 import type { ReadingEntry } from '../lib/types'
@@ -27,6 +27,10 @@ export default function TodayCard({
   jlptLevels,
 }: TodayCardProps) {
   const [showTranslation, setShowTranslation] = useState(false)
+
+  // Regenerating today's paragraph reuses this same component instance —
+  // don't leave the previous paragraph's translation revealed.
+  useEffect(() => setShowTranslation(false), [entry?.paragraph_jp])
 
   return (
     <section className="border border-paper-line bg-card rounded-2xl p-6 mb-8 relative">
@@ -112,11 +116,12 @@ export default function TodayCard({
             </div>
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-1.5">
-            {(entry.grammar_used ?? []).map((g, i) => (
-              <GrammarChip key={i} label={g} showFurigana={showFurigana} jlptLevels={jlptLevels} />
-            ))}
-          </div>
+          <GrammarChipRow
+            grammarUsed={entry.grammar_used}
+            showFurigana={showFurigana}
+            jlptLevels={jlptLevels}
+            className="mb-4"
+          />
 
           <ComprehensionCheck questions={entry.comprehension ?? []} />
 

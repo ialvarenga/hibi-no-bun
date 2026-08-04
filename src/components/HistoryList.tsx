@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 import FuriganaText from './FuriganaText'
-import GrammarChip from './GrammarChip'
+import GrammarChipRow from './GrammarChipRow'
 import ComprehensionCheck from './ComprehensionCheck'
 import SpeakButton from './SpeakButton'
 import { resolveGrammarTopic } from '../lib/constants'
@@ -122,13 +122,12 @@ export default function HistoryList({ entries, showFurigana, jlptLevels }: Histo
                 <SpeakButton text={h.paragraph_jp} />
               </div>
               <p className="text-xs mt-2 text-ink-soft">{h.translation_pt}</p>
-              {h.grammar_used && h.grammar_used.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {h.grammar_used.map((g, i) => (
-                    <GrammarChip key={i} label={g} showFurigana={showFurigana} jlptLevels={jlptLevels} />
-                  ))}
-                </div>
-              )}
+              <GrammarChipRow
+                grammarUsed={h.grammar_used}
+                showFurigana={showFurigana}
+                jlptLevels={jlptLevels}
+                className="mt-2"
+              />
               {h.comprehension && h.comprehension.length > 0 && (
                 <div className="mt-3">
                   <ComprehensionCheck questions={h.comprehension} />
