@@ -28,6 +28,17 @@ export const DEFAULT_THEMES: string[] = [
   'Anime',
 ]
 
+// Resolves a `grammar_used` entry to its topic. New entries store the topic
+// id directly; older history entries stored a free-text Portuguese label the
+// model paraphrased from `pt`, so that's kept as a fallback match. Anything
+// that resolves to neither renders as a plain, non-interactive label.
+export function resolveGrammarTopic(label: string): GrammarTopic | undefined {
+  return (
+    DEFAULT_TOPICS.find((t) => t.id === label) ??
+    DEFAULT_TOPICS.find((t) => t.pt.toLowerCase() === label.trim().toLowerCase())
+  )
+}
+
 export const DEFAULT_STUDIED_IDS = DEFAULT_TOPICS.slice(0, 3).map((t) => t.id)
 export const DEFAULT_SELECTED_THEMES = ['Tecnologia', 'Viagem']
 

@@ -1,7 +1,7 @@
 import type { ComprehensionQuestion, GrammarTopic, VocabItem } from './types'
 
 export interface GenerateRequest {
-  topics: Pick<GrammarTopic, 'jp' | 'pt'>[]
+  topics: Pick<GrammarTopic, 'id' | 'jp' | 'pt'>[]
   theme: string
   recentTopics?: string[]
   jlptLevel?: string

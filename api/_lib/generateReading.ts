@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 const MODEL = 'claude-sonnet-5'
 
 export interface TopicInput {
+  id: string
   jp: string
   pt: string
 }
@@ -27,7 +28,7 @@ function buildPrompt(
   recentTopics: string[],
   jlptLevel: string,
 ): string {
-  const grammarList = topics.map((t) => `${t.jp} (${t.pt})`).join(', ')
+  const grammarList = topics.map((t) => `${t.id}: ${t.jp} (${t.pt})`).join(', ')
   const avoidList =
     recentTopics.length > 0
       ? `\n\nAssuntos já usados recentemente — escolha um artigo sobre um assunto DIFERENTE destes, mesmo que dentro do mesmo tema geral:\n${recentTopics.map((t) => `- ${t}`).join('\n')}`
@@ -42,7 +43,7 @@ function buildPrompt(
 4. Crie 2 perguntas de múltipla escolha EM JAPONÊS (pergunta e as 4 alternativas, todas em japonês, sem furigana) para checar a compreensão do parágrafo (não do artigo original), cada uma com exatamente 4 alternativas plausíveis e só uma correta. Use um japonês no mesmo nível (JLPT ${jlptLevel}) do parágrafo.
 5. Responda SOMENTE com o JSON válido — a resposta deve começar diretamente em { e terminar em }, sem markdown, sem rascunho, sem explicação antes ou depois, no formato exato:
 {"paragraph_jp": "...(com as anotações de furigana do passo 3)...", "translation_pt": "...", "vocab": [{"word": "...", "reading": "...", "meaning_pt": "..."}], "grammar_used": ["..."], "source_title": "...", "source_url": "...", "comprehension": [{"question": "...", "choices": ["...", "...", "...", "..."], "answer_index": 0}]}
-O campo "vocab" deve ter entre 5 e 8 palavras relevantes do parágrafo, com leitura em hiragana/katakana e significado em português. "grammar_used" deve listar (em português) quais dos pontos gramaticais acima foram efetivamente usados. "source_url" deve ser a URL real da fonte encontrada na busca. "comprehension" deve ter exatamente 2 perguntas conforme o passo 4, com "answer_index" sendo o índice (0 a 3) da alternativa correta em "choices".`
+O campo "vocab" deve ter entre 5 e 8 palavras relevantes do parágrafo, com leitura em hiragana/katakana e significado em português. "grammar_used" deve listar APENAS os identificadores (ids) exatos da lista acima — por exemplo "te_form" — dos pontos gramaticais efetivamente usados; nunca o texto em japonês ou português. "source_url" deve ser a URL real da fonte encontrada na busca. "comprehension" deve ter exatamente 2 perguntas conforme o passo 4, com "answer_index" sendo o índice (0 a 3) da alternativa correta em "choices".`
 }
 
 function messageText(message: Anthropic.Message): string {
@@ -53,7 +54,7 @@ function messageText(message: Anthropic.Message): string {
     .trim()
 }
 
-function extractJSON(message: Anthropic.Message): GeneratedReading {
+function extractJSON(message: Anthropic.Message, topics: TopicInput[]): GeneratedReading {
   const text = messageText(message)
   const cleaned = text.replace(/```json|```/g, '').trim()
   const start = cleaned.indexOf('{')
@@ -65,6 +66,11 @@ function extractJSON(message: Anthropic.Message): GeneratedReading {
   if (!parsed.paragraph_jp || !parsed.translation_pt) {
     throw new Error('JSON retornado está incompleto')
   }
+  // Drop any id the model invented or mistyped — grammar_used only ever
+  // renders an explanation for ids we recognize, so a bad id here should
+  // just disappear rather than resolve to a wrong/blank chip.
+  const validIds = new Set(topics.map((t) => t.id))
+  parsed.grammar_used = (parsed.grammar_used ?? []).filter((id) => validIds.has(id))
   return parsed
 }
 
@@ -111,7 +117,7 @@ export async function generateReading(
   const response = await runToCompletion(client, params)
 
   try {
-    return extractJSON(response)
+    return extractJSON(response, topics)
   } catch (err) {
     // The model occasionally ignores the "JSON only" instruction (e.g. it
     // apologizes in prose when the search comes back thin). Give it one
@@ -133,7 +139,7 @@ export async function generateReading(
       ],
     })
     try {
-      return extractJSON(retryResponse)
+      return extractJSON(retryResponse, topics)
     } catch {
       console.error(
         'generateReading: retry also failed. Raw text:',

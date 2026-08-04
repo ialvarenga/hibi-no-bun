@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Sparkles, Loader2, ExternalLink, Eye, EyeOff, CaseSensitive, RefreshCw } from 'lucide-react'
 import HankoStamp from './HankoStamp'
 import FuriganaText from './FuriganaText'
+import GrammarChip from './GrammarChip'
 import ComprehensionCheck from './ComprehensionCheck'
 import SpeakButton from './SpeakButton'
 import type { ReadingEntry } from '../lib/types'
@@ -28,7 +29,7 @@ export default function TodayCard({
   const [showTranslation, setShowTranslation] = useState(false)
 
   return (
-    <section className="border border-paper-line bg-card rounded-2xl p-6 mb-8 relative overflow-hidden">
+    <section className="border border-paper-line bg-card rounded-2xl p-6 mb-8 relative">
       <div className="absolute top-4 right-4">
         <HankoStamp size={44}>今日</HankoStamp>
       </div>
@@ -113,12 +114,7 @@ export default function TodayCard({
 
           <div className="mb-4 flex flex-wrap gap-1.5">
             {(entry.grammar_used ?? []).map((g, i) => (
-              <span
-                key={i}
-                className="text-xs rounded-full px-2.5 py-1 bg-moss/10 text-moss"
-              >
-                {g}
-              </span>
+              <GrammarChip key={i} label={g} showFurigana={showFurigana} jlptLevels={jlptLevels} />
             ))}
           </div>
 

@@ -15,7 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (!Array.isArray(topics) || topics.length === 0 || typeof theme !== 'string' || !theme.trim()) {
-    res.status(400).json({ error: 'Corpo inválido: esperado { topics: [{jp, pt}], theme: string }' })
+    res.status(400).json({ error: 'Corpo inválido: esperado { topics: [{id, jp, pt}], theme: string }' })
     return
   }
 

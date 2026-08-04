@@ -36,11 +36,19 @@ out of here, or mark it done) once it ships.
       furigana annotations and speaks the paragraph with a `ja-JP` voice, on today's card and each
       history entry.
 
+- [x] **Grammar point explanations** — tapping a `grammar_used` chip now shows a popover with a
+      short explanation and an example sentence, instead of just a label. To avoid LLM
+      hallucination, the explanations are a static, hand-authored dataset
+      (`src/lib/grammarExplanations.ts`) grounded in Tae Kim's Guide to Japanese
+      (guidetojapanese.org, CC BY-NC-SA 2.5) rather than generated per request, with a "Leia mais"
+      link back to the source chapter. `grammar_used` now stores topic ids (validated against the
+      known list in `api/_lib/generateReading.ts`) instead of free-text, resolved via
+      `resolveGrammarTopic` (`src/lib/constants.ts`, with a legacy free-text fallback) and rendered
+      by `src/components/GrammarChip.tsx` on both today's card and history entries.
+
 ## Backlog
 
-1. **Grammar point explanations** — tapping a `grammar_used` chip shows a short explanation plus
-   another example sentence, rather than just a label.
-2. **Full streak calendar** — contribution-graph-style view instead of just the last 7 days.
-3. **Search/filter history** by theme or grammar point.
-4. **Sentence mining / writing practice** — user writes a short reaction/summary in Japanese,
+1. **Full streak calendar** — contribution-graph-style view instead of just the last 7 days.
+2. **Search/filter history** by theme or grammar point.
+3. **Sentence mining / writing practice** — user writes a short reaction/summary in Japanese,
    submitted for AI feedback.

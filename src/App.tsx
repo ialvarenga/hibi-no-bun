@@ -176,7 +176,7 @@ export default function App() {
     try {
       const result = await generateReading(
         {
-          topics: studiedTopics.map((t) => ({ jp: t.jp, pt: t.pt })),
+          topics: studiedTopics.map((t) => ({ id: t.id, jp: t.jp, pt: t.pt })),
           theme,
           recentTopics,
           jlptLevel,
