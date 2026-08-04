@@ -57,6 +57,7 @@ export default function TodayCard({
           <FuriganaText
             text={entry.paragraph_jp}
             showReadings={showFurigana}
+            vocab={entry.vocab}
             className="block font-display text-xl leading-loose mb-4 pr-12 text-ink"
           />
 

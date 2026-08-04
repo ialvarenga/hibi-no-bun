@@ -28,6 +28,7 @@ export default function HistoryList({ entries, showFurigana }: HistoryListProps)
             <FuriganaText
               text={h.paragraph_jp}
               showReadings={showFurigana}
+              vocab={h.vocab}
               className="block font-display text-base mt-3 leading-loose text-ink"
             />
             <p className="text-xs mt-2 text-ink-soft">{h.translation_pt}</p>

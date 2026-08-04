@@ -10,21 +10,22 @@ out of here, or mark it done) once it ships.
       never seen again after that day. Added a Leitner-style spaced repetition review over the
       vocab accumulated across history (`src/lib/db.ts`, `src/components/VocabReview.tsx`).
 
+- [x] **Click-to-lookup on the paragraph itself** — tapping a kanji word in the paragraph now
+      shows its reading/meaning in an inline popover, matched against the entry's `vocab` list
+      (`src/components/FuriganaText.tsx`).
+
 ## Backlog
 
-1. **Click-to-lookup on the paragraph itself** — `FuriganaText.tsx` already parses word-level
-   segments; tapping a word to show its reading/meaning inline (instead of only the separate
-   vocab list) would connect vocab to context.
-2. **Comprehension check** — 1-2 auto-generated multiple-choice questions per paragraph (from
+1. **Comprehension check** — 1-2 auto-generated multiple-choice questions per paragraph (from
    the same model call that generates the reading) to force active recall instead of passive
    reading + translation reveal.
-3. **Listen mode (TTS)** — Web Speech API reading the paragraph aloud for pronunciation/listening
+2. **Listen mode (TTS)** — Web Speech API reading the paragraph aloud for pronunciation/listening
    practice, basically free to add.
-4. **JLPT level control** — currently hardcoded to N4-N3 in the prompt
+3. **JLPT level control** — currently hardcoded to N4-N3 in the prompt
    (`api/_lib/generateReading.ts`); exposing this as a setting lets the app grow with the user.
-5. **Grammar point explanations** — tapping a `grammar_used` chip shows a short explanation plus
+4. **Grammar point explanations** — tapping a `grammar_used` chip shows a short explanation plus
    another example sentence, rather than just a label.
-6. **Full streak calendar** — contribution-graph-style view instead of just the last 7 days.
-7. **Search/filter history** by theme or grammar point.
-8. **Sentence mining / writing practice** — user writes a short reaction/summary in Japanese,
+5. **Full streak calendar** — contribution-graph-style view instead of just the last 7 days.
+6. **Search/filter history** by theme or grammar point.
+7. **Sentence mining / writing practice** — user writes a short reaction/summary in Japanese,
    submitted for AI feedback.
