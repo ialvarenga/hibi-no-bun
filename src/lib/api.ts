@@ -1,4 +1,4 @@
-import type { GrammarTopic, VocabItem } from './types'
+import type { ComprehensionQuestion, GrammarTopic, VocabItem } from './types'
 
 export interface GenerateRequest {
   topics: Pick<GrammarTopic, 'jp' | 'pt'>[]
@@ -14,6 +14,7 @@ export interface GenerateResponse {
   grammar_used: string[]
   source_title: string
   source_url: string
+  comprehension: ComprehensionQuestion[]
 }
 
 export async function generateReading(

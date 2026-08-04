@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Sparkles, Loader2, ExternalLink, Eye, EyeOff, CaseSensitive, RefreshCw } from 'lucide-react'
 import HankoStamp from './HankoStamp'
 import FuriganaText from './FuriganaText'
+import ComprehensionCheck from './ComprehensionCheck'
 import type { ReadingEntry } from '../lib/types'
 
 interface TodayCardProps {
@@ -115,6 +116,8 @@ export default function TodayCard({
               </span>
             ))}
           </div>
+
+          <ComprehensionCheck questions={entry.comprehension ?? []} />
 
           {entry.source_url && (
             <a

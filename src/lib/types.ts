@@ -10,6 +10,12 @@ export interface VocabItem {
   meaning_pt: string
 }
 
+export interface ComprehensionQuestion {
+  question: string
+  choices: string[]
+  answer_index: number
+}
+
 export interface ReadingEntry {
   date: string // YYYY-MM-DD
   theme: string
@@ -20,6 +26,7 @@ export interface ReadingEntry {
   grammar_used: string[]
   source_title: string
   source_url: string
+  comprehension?: ComprehensionQuestion[]
 }
 
 export interface Profile {

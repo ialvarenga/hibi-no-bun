@@ -1,4 +1,5 @@
 import FuriganaText from './FuriganaText'
+import ComprehensionCheck from './ComprehensionCheck'
 import type { ReadingEntry } from '../lib/types'
 
 interface HistoryListProps {
@@ -32,6 +33,11 @@ export default function HistoryList({ entries, showFurigana }: HistoryListProps)
               className="block font-display text-base mt-3 leading-loose text-ink"
             />
             <p className="text-xs mt-2 text-ink-soft">{h.translation_pt}</p>
+            {h.comprehension && h.comprehension.length > 0 && (
+              <div className="mt-3">
+                <ComprehensionCheck questions={h.comprehension} />
+              </div>
+            )}
           </details>
         ))}
       </div>

@@ -16,6 +16,7 @@ export interface GeneratedReading {
   grammar_used: string[]
   source_title: string
   source_url: string
+  comprehension: { question: string; choices: string[]; answer_index: number }[]
 }
 
 const DEFAULT_JLPT_LEVEL = 'N4-N3'
@@ -38,9 +39,10 @@ function buildPrompt(
 2. Escreva um parágrafo ORIGINAL em japonês (entre 90 e 150 caracteres, contando só o texto japonês, sem as leituras entre colchetes do passo 3), inspirado/parafraseado nesse conteúdo (não copie trechos literais da fonte), incorporando naturalmente pelo menos 2 destes pontos gramaticais: ${grammarList}.
 3. Adicione furigana: logo após CADA palavra ou trecho contendo kanji, insira a leitura em hiragana entre colchetes, no formato 漢字[かんじ]. Não anote hiragana, katakana nem pontuação — só trechos com kanji. Exemplo: 私[わたし]は日本語[にほんご]を勉強[べんきょう]しています。
    ISSO INCLUI, SEM EXCEÇÃO: números escritos em kanji (一つ, 二人, 三年 etc.), nomes próprios e de lugares (東京[とうきょう], 日本[にほん]), kanji únicos comuns (今日[きょう], 人[ひと]) e qualquer kanji que se repita no texto — cada ocorrência precisa da sua própria anotação, mesmo repetida. NENHUM caractere kanji pode aparecer sem colchetes logo em seguida. Confira isso mentalmente antes de responder, mas NÃO escreva essa checagem, rascunho ou qualquer outro texto de raciocínio na resposta.
-4. Responda SOMENTE com o JSON válido — a resposta deve começar diretamente em { e terminar em }, sem markdown, sem rascunho, sem explicação antes ou depois, no formato exato:
-{"paragraph_jp": "...(com as anotações de furigana do passo 3)...", "translation_pt": "...", "vocab": [{"word": "...", "reading": "...", "meaning_pt": "..."}], "grammar_used": ["..."], "source_title": "...", "source_url": "..."}
-O campo "vocab" deve ter entre 5 e 8 palavras relevantes do parágrafo, com leitura em hiragana/katakana e significado em português. "grammar_used" deve listar (em português) quais dos pontos gramaticais acima foram efetivamente usados. "source_url" deve ser a URL real da fonte encontrada na busca.`
+4. Crie 2 perguntas de múltipla escolha em português para checar a compreensão do parágrafo (não do artigo original), cada uma com exatamente 4 alternativas plausíveis e só uma correta.
+5. Responda SOMENTE com o JSON válido — a resposta deve começar diretamente em { e terminar em }, sem markdown, sem rascunho, sem explicação antes ou depois, no formato exato:
+{"paragraph_jp": "...(com as anotações de furigana do passo 3)...", "translation_pt": "...", "vocab": [{"word": "...", "reading": "...", "meaning_pt": "..."}], "grammar_used": ["..."], "source_title": "...", "source_url": "...", "comprehension": [{"question": "...", "choices": ["...", "...", "...", "..."], "answer_index": 0}]}
+O campo "vocab" deve ter entre 5 e 8 palavras relevantes do parágrafo, com leitura em hiragana/katakana e significado em português. "grammar_used" deve listar (em português) quais dos pontos gramaticais acima foram efetivamente usados. "source_url" deve ser a URL real da fonte encontrada na busca. "comprehension" deve ter exatamente 2 perguntas conforme o passo 4, com "answer_index" sendo o índice (0 a 3) da alternativa correta em "choices".`
 }
 
 function messageText(message: Anthropic.Message): string {

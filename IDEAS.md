@@ -20,16 +20,18 @@ out of here, or mark it done) once it ships.
       `src/lib/constants.ts`) and joined (e.g. "N3-N2") into the generation prompt
       (`api/_lib/generateReading.ts`).
 
+- [x] **Comprehension check** — the generation prompt now also produces 2 multiple-choice
+      questions per paragraph (`comprehension: ComprehensionQuestion[]` on `ReadingEntry`,
+      `api/_lib/generateReading.ts`), rendered as an interactive quiz with instant right/wrong
+      feedback on both today's card and history entries (`src/components/ComprehensionCheck.tsx`).
+
 ## Backlog
 
-1. **Comprehension check** — 1-2 auto-generated multiple-choice questions per paragraph (from
-   the same model call that generates the reading) to force active recall instead of passive
-   reading + translation reveal.
-2. **Listen mode (TTS)** — Web Speech API reading the paragraph aloud for pronunciation/listening
+1. **Listen mode (TTS)** — Web Speech API reading the paragraph aloud for pronunciation/listening
    practice, basically free to add.
-3. **Grammar point explanations** — tapping a `grammar_used` chip shows a short explanation plus
+2. **Grammar point explanations** — tapping a `grammar_used` chip shows a short explanation plus
    another example sentence, rather than just a label.
-4. **Full streak calendar** — contribution-graph-style view instead of just the last 7 days.
-5. **Search/filter history** by theme or grammar point.
-6. **Sentence mining / writing practice** — user writes a short reaction/summary in Japanese,
+3. **Full streak calendar** — contribution-graph-style view instead of just the last 7 days.
+4. **Search/filter history** by theme or grammar point.
+5. **Sentence mining / writing practice** — user writes a short reaction/summary in Japanese,
    submitted for AI feedback.
