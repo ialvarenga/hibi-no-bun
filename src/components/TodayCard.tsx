@@ -3,6 +3,7 @@ import { Sparkles, Loader2, ExternalLink, Eye, EyeOff, CaseSensitive, RefreshCw 
 import HankoStamp from './HankoStamp'
 import FuriganaText from './FuriganaText'
 import ComprehensionCheck from './ComprehensionCheck'
+import SpeakButton from './SpeakButton'
 import type { ReadingEntry } from '../lib/types'
 
 interface TodayCardProps {
@@ -66,6 +67,7 @@ export default function TodayCard({
           />
 
           <div className="flex flex-wrap gap-2 mb-4">
+            <SpeakButton text={entry.paragraph_jp} />
             <button
               onClick={() => setShowTranslation((s) => !s)}
               className="border border-paper-line rounded-full px-3 py-1.5 text-xs inline-flex items-center gap-1.5 text-indigo-soft"

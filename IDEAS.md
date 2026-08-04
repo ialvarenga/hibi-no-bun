@@ -31,13 +31,16 @@ out of here, or mark it done) once it ships.
       (`src/lib/kanjiLevels.ts`, `src/lib/kanjiLevel.ts`, `src/components/FuriganaText.tsx`).
       The manual toggle still hides everything when turned off.
 
+- [x] **Listen mode (TTS)** — Web Speech API reading the paragraph aloud for pronunciation/listening
+      practice. An "Ouvir" button (`src/components/SpeakButton.tsx`, `src/lib/tts.ts`) strips the
+      furigana annotations and speaks the paragraph with a `ja-JP` voice, on today's card and each
+      history entry.
+
 ## Backlog
 
-1. **Listen mode (TTS)** — Web Speech API reading the paragraph aloud for pronunciation/listening
-   practice, basically free to add.
-2. **Grammar point explanations** — tapping a `grammar_used` chip shows a short explanation plus
+1. **Grammar point explanations** — tapping a `grammar_used` chip shows a short explanation plus
    another example sentence, rather than just a label.
-3. **Full streak calendar** — contribution-graph-style view instead of just the last 7 days.
-4. **Search/filter history** by theme or grammar point.
-5. **Sentence mining / writing practice** — user writes a short reaction/summary in Japanese,
+2. **Full streak calendar** — contribution-graph-style view instead of just the last 7 days.
+3. **Search/filter history** by theme or grammar point.
+4. **Sentence mining / writing practice** — user writes a short reaction/summary in Japanese,
    submitted for AI feedback.

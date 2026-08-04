@@ -1,5 +1,6 @@
 import FuriganaText from './FuriganaText'
 import ComprehensionCheck from './ComprehensionCheck'
+import SpeakButton from './SpeakButton'
 import type { ReadingEntry } from '../lib/types'
 
 interface HistoryListProps {
@@ -34,6 +35,9 @@ export default function HistoryList({ entries, showFurigana, jlptLevels }: Histo
               vocab={h.vocab}
               className="block font-display text-base mt-3 leading-loose text-ink"
             />
+            <div className="mt-2">
+              <SpeakButton text={h.paragraph_jp} />
+            </div>
             <p className="text-xs mt-2 text-ink-soft">{h.translation_pt}</p>
             {h.comprehension && h.comprehension.length > 0 && (
               <div className="mt-3">
