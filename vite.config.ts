@@ -25,8 +25,10 @@ function devApi(): Plugin {
               res.end(JSON.stringify({ error: 'Corpo inválido: esperado { topics, theme }' }))
               return
             }
+            const apiKeyHeader = req.headers['x-anthropic-api-key']
+            const apiKey = Array.isArray(apiKeyHeader) ? apiKeyHeader[0] : apiKeyHeader
             const { generateReading } = await import('./api/_lib/generateReading')
-            const reading = await generateReading(topics, theme)
+            const reading = await generateReading(topics, theme, apiKey)
             res.end(JSON.stringify(reading))
           } catch (err) {
             console.error('dev /api/generate error:', err)
@@ -52,6 +54,9 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
+    server: {
+      port: process.env.PORT ? Number(process.env.PORT) : 5173,
+    },
     plugins: [
       react(),
       devApi(),

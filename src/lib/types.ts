@@ -27,6 +27,7 @@ export interface Profile {
   themes: string[]
   allThemes: string[]
   showFurigana: boolean
+  apiKey: string
 }
 
 export interface VocabCard {

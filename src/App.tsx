@@ -93,6 +93,11 @@ export default function App() {
     persistProfile({ ...profile, showFurigana: !profile.showFurigana })
   }
 
+  function setApiKey(key: string) {
+    if (!profile || key === profile.apiKey) return
+    persistProfile({ ...profile, apiKey: key })
+  }
+
   function addCustomTheme(name: string) {
     if (!profile) return
     const allThemes = profile.allThemes.includes(name)
@@ -140,10 +145,13 @@ export default function App() {
     const theme = profile.themes[Math.floor(Math.random() * profile.themes.length)]
 
     try {
-      const result = await generateReading({
-        topics: studiedTopics.map((t) => ({ jp: t.jp, pt: t.pt })),
-        theme,
-      })
+      const result = await generateReading(
+        {
+          topics: studiedTopics.map((t) => ({ jp: t.jp, pt: t.pt })),
+          theme,
+        },
+        profile.apiKey,
+      )
       const entry: ReadingEntry = {
         date: today,
         theme,
@@ -208,6 +216,7 @@ export default function App() {
             onToggleTopic={toggleTopic}
             onToggleTheme={toggleTheme}
             onAddCustomTheme={addCustomTheme}
+            onSetApiKey={setApiKey}
             notificationPermission={notificationPermission}
             onRequestNotifications={() => void handleRequestNotifications()}
           />

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Plus, Bell, BellOff } from 'lucide-react'
+import { Check, Plus, Bell, BellOff, Eye, EyeOff, KeyRound } from 'lucide-react'
 import { DEFAULT_TOPICS } from '../lib/constants'
 import type { Profile } from '../lib/types'
 
@@ -8,6 +8,7 @@ interface SettingsPanelProps {
   onToggleTopic: (id: string) => void
   onToggleTheme: (name: string) => void
   onAddCustomTheme: (name: string) => void
+  onSetApiKey: (key: string) => void
   notificationPermission: NotificationPermission | 'unsupported'
   onRequestNotifications: () => void
 }
@@ -17,10 +18,13 @@ export default function SettingsPanel({
   onToggleTopic,
   onToggleTheme,
   onAddCustomTheme,
+  onSetApiKey,
   notificationPermission,
   onRequestNotifications,
 }: SettingsPanelProps) {
   const [customThemeInput, setCustomThemeInput] = useState('')
+  const [apiKeyInput, setApiKeyInput] = useState(profile.apiKey)
+  const [showApiKey, setShowApiKey] = useState(false)
 
   function handleAddTheme() {
     const value = customThemeInput.trim()
@@ -114,6 +118,38 @@ export default function SettingsPanel({
           <BellOff size={13} /> Ativar lembrete diário
         </button>
       )}
+
+      <h2 className="text-sm font-bold uppercase tracking-wider mb-3 mt-6 text-indigo">
+        Chave de API (Anthropic)
+      </h2>
+      <p className="text-xs text-ink-soft mb-2">
+        Opcional: informe sua própria chave para gerar os parágrafos a partir deste
+        dispositivo, sem depender de uma chave configurada no servidor. Ela fica salva só
+        neste aparelho.
+      </p>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <KeyRound size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft" />
+          <input
+            value={apiKeyInput}
+            onChange={(e) => setApiKeyInput(e.target.value)}
+            onBlur={() => onSetApiKey(apiKeyInput.trim())}
+            onKeyDown={(e) => e.key === 'Enter' && onSetApiKey(apiKeyInput.trim())}
+            type={showApiKey ? 'text' : 'password'}
+            placeholder="sk-ant-..."
+            autoComplete="off"
+            className="border border-paper-line bg-white rounded-full pl-8 pr-8 py-1.5 text-xs w-full outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => setShowApiKey((s) => !s)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft"
+            aria-label={showApiKey ? 'Ocultar chave' : 'Mostrar chave'}
+          >
+            {showApiKey ? <EyeOff size={13} /> : <Eye size={13} />}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

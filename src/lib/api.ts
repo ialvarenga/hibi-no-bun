@@ -14,10 +14,16 @@ export interface GenerateResponse {
   source_url: string
 }
 
-export async function generateReading(req: GenerateRequest): Promise<GenerateResponse> {
+export async function generateReading(
+  req: GenerateRequest,
+  apiKey?: string,
+): Promise<GenerateResponse> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (apiKey) headers['X-Anthropic-Api-Key'] = apiKey
+
   const res = await fetch('/api/generate', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(req),
   })
 

@@ -53,11 +53,15 @@ function extractJSON(message: Anthropic.Message): GeneratedReading {
 export async function generateReading(
   topics: TopicInput[],
   theme: string,
+  apiKey?: string,
 ): Promise<GeneratedReading> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY não configurada no ambiente do servidor')
+  const key = apiKey || process.env.ANTHROPIC_API_KEY
+  if (!key) {
+    throw new Error(
+      'Nenhuma chave da Anthropic configurada — defina ANTHROPIC_API_KEY no servidor ou adicione sua chave em Configurações.',
+    )
   }
-  const client = new Anthropic()
+  const client = new Anthropic({ apiKey: key })
 
   const params: Anthropic.MessageCreateParamsNonStreaming = {
     model: MODEL,

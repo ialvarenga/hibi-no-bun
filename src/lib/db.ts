@@ -58,6 +58,7 @@ function defaultProfile(): Profile {
     themes: DEFAULT_SELECTED_THEMES,
     allThemes: DEFAULT_THEMES,
     showFurigana: true,
+    apiKey: '',
   }
 }
 

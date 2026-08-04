@@ -17,8 +17,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return
   }
 
+  const apiKeyHeader = req.headers['x-anthropic-api-key']
+  const apiKey = Array.isArray(apiKeyHeader) ? apiKeyHeader[0] : apiKeyHeader
+
   try {
-    const reading = await generateReading(topics, theme)
+    const reading = await generateReading(topics, theme, apiKey)
     res.status(200).json(reading)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erro desconhecido'
