@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import { lastNWeeks, parseLocalDateStr, todayStr } from '../lib/date'
 
 interface StreakCalendarProps {
@@ -5,15 +6,33 @@ interface StreakCalendarProps {
 }
 
 const WEEKS = 52
-const CELL = 11
-const GAP = 3
+const GAP = 2
+const LABEL_WIDTH = 20
 const MONTH_LABELS_PT = [
   'jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez',
 ]
 const WEEKDAY_LABELS_PT = ['', 'Seg', '', 'Qua', '', 'Sex', '']
 
 export default function StreakCalendar({ completedDates }: StreakCalendarProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [cell, setCell] = useState(9)
   const weeks = lastNWeeks(WEEKS)
+  const numCols = weeks.length
+
+  useLayoutEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const update = () => {
+      const available = el.clientWidth - LABEL_WIDTH - 8
+      const size = Math.floor((available - (numCols - 1) * GAP) / numCols)
+      setCell(Math.max(size, 1))
+    }
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [numCols])
+
   const today = todayStr()
 
   let lastMonth = -1
@@ -27,47 +46,48 @@ export default function StreakCalendar({ completedDates }: StreakCalendarProps) 
   })
 
   return (
-    <div className="mt-4 flex gap-2">
-      <div className="flex flex-col mt-[18px] shrink-0" style={{ gap: GAP }}>
+    <div ref={containerRef} className="mt-4 flex gap-2">
+      <div
+        className="flex flex-col mt-[18px] shrink-0"
+        style={{ gap: GAP, width: LABEL_WIDTH }}
+      >
         {WEEKDAY_LABELS_PT.map((label, i) => (
           <span
             key={i}
-            style={{ height: CELL, lineHeight: `${CELL}px` }}
+            style={{ height: cell, lineHeight: `${cell}px` }}
             className="text-[9px] text-ink-soft"
           >
             {label}
           </span>
         ))}
       </div>
-      <div className="overflow-x-auto pb-2">
-        <div className="inline-flex flex-col" style={{ gap: GAP }}>
-          <div className="flex" style={{ gap: GAP }}>
-            {monthLabels.map((label, i) => (
-              <span key={i} style={{ width: CELL }} className="text-[9px] text-ink-soft">
-                {label ?? ''}
-              </span>
-            ))}
-          </div>
-          <div className="flex" style={{ gap: GAP }}>
-            {weeks.map((week, wi) => (
-              <div key={wi} className="flex flex-col" style={{ gap: GAP }}>
-                {week.map((day, di) => {
-                  if (!day || day > today) {
-                    return <div key={di} style={{ width: CELL, height: CELL }} />
-                  }
-                  const done = completedDates.has(day)
-                  return (
-                    <div
-                      key={di}
-                      title={day}
-                      style={{ width: CELL, height: CELL }}
-                      className={`rounded-sm ${done ? 'bg-vermillion' : 'bg-paper-line/50'}`}
-                    />
-                  )
-                })}
-              </div>
-            ))}
-          </div>
+      <div className="flex flex-col min-w-0" style={{ gap: GAP }}>
+        <div className="flex" style={{ gap: GAP }}>
+          {monthLabels.map((label, i) => (
+            <span key={i} style={{ width: cell }} className="text-[9px] text-ink-soft">
+              {label ?? ''}
+            </span>
+          ))}
+        </div>
+        <div className="flex" style={{ gap: GAP }}>
+          {weeks.map((week, wi) => (
+            <div key={wi} className="flex flex-col" style={{ gap: GAP }}>
+              {week.map((day, di) => {
+                if (!day || day > today) {
+                  return <div key={di} style={{ width: cell, height: cell }} />
+                }
+                const done = completedDates.has(day)
+                return (
+                  <div
+                    key={di}
+                    title={day}
+                    style={{ width: cell, height: cell }}
+                    className={`rounded-sm ${done ? 'bg-vermillion' : 'bg-paper-line/50'}`}
+                  />
+                )
+              })}
+            </div>
+          ))}
         </div>
       </div>
     </div>
