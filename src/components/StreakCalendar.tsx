@@ -5,7 +5,8 @@ interface StreakCalendarProps {
   completedDates: Set<string>
 }
 
-const WEEKS = 52
+const MAX_WEEKS = 52
+const MIN_CELL = 7
 const GAP = 2
 const LABEL_WIDTH = 20
 const MONTH_LABELS_PT = [
@@ -16,22 +17,27 @@ const WEEKDAY_LABELS_PT = ['', 'Seg', '', 'Qua', '', 'Sex', '']
 export default function StreakCalendar({ completedDates }: StreakCalendarProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [cell, setCell] = useState(9)
-  const weeks = lastNWeeks(WEEKS)
-  const numCols = weeks.length
+  const [cols, setCols] = useState(MAX_WEEKS)
+
+  const allWeeks = lastNWeeks(MAX_WEEKS)
+  const weeks = allWeeks.slice(Math.max(0, allWeeks.length - cols))
 
   useLayoutEffect(() => {
     const el = containerRef.current
     if (!el) return
     const update = () => {
       const available = el.clientWidth - LABEL_WIDTH - 8
-      const size = Math.floor((available - (numCols - 1) * GAP) / numCols)
-      setCell(Math.max(size, 1))
+      const maxFit = Math.floor((available + GAP) / (MIN_CELL + GAP))
+      const n = Math.max(1, Math.min(allWeeks.length, maxFit))
+      const size = Math.floor((available - (n - 1) * GAP) / n)
+      setCols(n)
+      setCell(Math.max(size, MIN_CELL))
     }
     update()
     const observer = new ResizeObserver(update)
     observer.observe(el)
     return () => observer.disconnect()
-  }, [numCols])
+  }, [allWeeks.length])
 
   const today = todayStr()
 
