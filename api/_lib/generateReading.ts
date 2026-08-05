@@ -22,6 +22,61 @@ export interface GeneratedReading {
 
 const DEFAULT_JLPT_LEVEL = 'N4-N3'
 
+// Constrains the model's response to this exact shape via structured outputs
+// (output_config.format). This removes the "model replied with prose / markdown
+// / malformed JSON" failure mode entirely — the parse in extractJSON is now
+// guaranteed valid JSON — and pins answer_index to 0–3. The API's JSON Schema
+// support is limited: no string length, no array length, no numeric ranges, so
+// the 90–150 char paragraph, 5–8 vocab count, exactly-4-choices, and the
+// furigana-completeness rules are NOT enforceable here and still rely on the
+// prompt (and, for furigana, the retry in generateReading below).
+const READING_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'paragraph_jp',
+    'translation_pt',
+    'vocab',
+    'grammar_used',
+    'source_title',
+    'source_url',
+    'comprehension',
+  ],
+  properties: {
+    paragraph_jp: { type: 'string' },
+    translation_pt: { type: 'string' },
+    vocab: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['word', 'reading', 'meaning_pt'],
+        properties: {
+          word: { type: 'string' },
+          reading: { type: 'string' },
+          meaning_pt: { type: 'string' },
+        },
+      },
+    },
+    grammar_used: { type: 'array', items: { type: 'string' } },
+    source_title: { type: 'string' },
+    source_url: { type: 'string' },
+    comprehension: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['question', 'choices', 'answer_index'],
+        properties: {
+          question: { type: 'string' },
+          choices: { type: 'array', items: { type: 'string' } },
+          answer_index: { type: 'integer', enum: [0, 1, 2, 3] },
+        },
+      },
+    },
+  },
+}
+
 function buildPrompt(
   topics: TopicInput[],
   theme: string,
@@ -130,6 +185,7 @@ export async function generateReading(
   const params: Anthropic.MessageCreateParamsNonStreaming = {
     model: MODEL,
     max_tokens: 2048,
+    output_config: { format: { type: 'json_schema', schema: READING_SCHEMA } },
     messages: [{ role: 'user', content: buildPrompt(topics, theme, recentTopics, jlptLevel) }],
     tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
   }
@@ -139,10 +195,12 @@ export async function generateReading(
   try {
     return extractJSON(response, topics)
   } catch (err) {
-    // The model occasionally ignores the "JSON only" instruction (e.g. it
-    // apologizes in prose when the search comes back thin), or misses a
-    // furigana annotation on some kanji. Give it one more chance, explicitly
-    // pointing out the mistake, before giving up.
+    // With structured outputs the response is guaranteed valid JSON in the
+    // schema shape, so the main remaining reason to land here is a missed
+    // furigana annotation on some kanji (a semantic rule the schema can't
+    // express). The generic format failure is now rare but still handled as a
+    // fallback. Give it one more chance, explicitly pointing out the mistake,
+    // before giving up.
     console.error(
       'generateReading: first attempt failed, retrying. Reason:',
       err instanceof Error ? err.message : err,
