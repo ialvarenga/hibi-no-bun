@@ -117,3 +117,12 @@ export async function setFeedbackResolved(id: string, resolved: boolean): Promis
   const result = await db.query(`UPDATE feedback SET resolved = $2 WHERE id = $1`, [id, resolved])
   return (result.rowCount ?? 0) > 0
 }
+
+// Permanently removes a report — for the owner to clear spam/nonsense.
+export async function deleteFeedback(id: string): Promise<boolean> {
+  if (!UUID_RE.test(id)) return false
+  const db = getPool()
+  await ensureTable(db)
+  const result = await db.query(`DELETE FROM feedback WHERE id = $1`, [id])
+  return (result.rowCount ?? 0) > 0
+}

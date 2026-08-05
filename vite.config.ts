@@ -154,7 +154,7 @@ function devApi(): Plugin {
       server.middlewares.use('/api/feedback', async (req, res) => {
         res.setHeader('Content-Type', 'application/json')
         try {
-          const { saveFeedback, listFeedback, setFeedbackResolved } = await import(
+          const { saveFeedback, listFeedback, setFeedbackResolved, deleteFeedback } = await import(
             './api/_lib/feedbackDb.js'
           )
           const { isAuthed } = await import('./api/_lib/adminAuth.js')
@@ -225,6 +225,23 @@ function devApi(): Plugin {
               return
             }
             const ok = await setFeedbackResolved(id, resolved)
+            if (!ok) {
+              res.statusCode = 404
+              res.end(JSON.stringify({ error: 'Feedback não encontrado' }))
+              return
+            }
+            res.end(JSON.stringify({ ok: true }))
+            return
+          }
+
+          if (req.method === 'DELETE') {
+            const { id } = await readJsonBody(req)
+            if (typeof id !== 'string') {
+              res.statusCode = 400
+              res.end(JSON.stringify({ error: 'Corpo inválido: esperado { id }' }))
+              return
+            }
+            const ok = await deleteFeedback(id)
             if (!ok) {
               res.statusCode = 404
               res.end(JSON.stringify({ error: 'Feedback não encontrado' }))

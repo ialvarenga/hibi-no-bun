@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Loader2, LogOut, RefreshCw, Check, Undo2 } from 'lucide-react'
+import { Loader2, LogOut, RefreshCw, Check, Undo2, Trash2 } from 'lucide-react'
 import {
   listFeedback,
   resolveFeedback,
+  deleteFeedback,
   adminLogin,
   adminLogout,
   NOT_AUTHED,
@@ -74,6 +75,19 @@ export default function FeedbackDashboard() {
       // Revert on failure.
       setRows((rs) => rs.map((r) => (r.id === row.id ? { ...r, resolved: !next } : r)))
       setError(err instanceof Error ? err.message : 'Erro ao atualizar')
+    }
+  }
+
+  async function handleDelete(row: FeedbackRow) {
+    if (!window.confirm('Excluir este feedback permanentemente?')) return
+    const prev = rows
+    setRows((rs) => rs.filter((r) => r.id !== row.id))
+    try {
+      await deleteFeedback(row.id)
+    } catch (err) {
+      // Restore on failure.
+      setRows(prev)
+      setError(err instanceof Error ? err.message : 'Erro ao excluir')
     }
   }
 
@@ -189,20 +203,29 @@ export default function FeedbackDashboard() {
                 <span className="text-[11px] text-ink-soft">
                   {new Date(r.created_at).toLocaleString('pt-BR')}
                 </span>
-                <button
-                  onClick={() => void toggleResolved(r)}
-                  className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-ink-soft"
-                >
-                  {r.resolved ? (
-                    <>
-                      <Undo2 size={12} /> Reabrir
-                    </>
-                  ) : (
-                    <>
-                      <Check size={12} /> Resolver
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => void toggleResolved(r)}
+                    className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-ink-soft"
+                  >
+                    {r.resolved ? (
+                      <>
+                        <Undo2 size={12} /> Reabrir
+                      </>
+                    ) : (
+                      <>
+                        <Check size={12} /> Resolver
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => void handleDelete(r)}
+                    aria-label="Excluir feedback"
+                    className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-vermillion"
+                  >
+                    <Trash2 size={12} /> Excluir
+                  </button>
+                </div>
               </div>
             </div>
           ))}

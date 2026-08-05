@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { waitUntil } from '@vercel/functions'
-import { saveFeedback, listFeedback, setFeedbackResolved } from './_lib/feedbackDb'
+import { saveFeedback, listFeedback, setFeedbackResolved, deleteFeedback } from './_lib/feedbackDb'
 import { sendFeedbackEmail } from './_lib/notify'
 import { isAuthed } from './_lib/adminAuth'
 import { FEEDBACK_CATEGORIES, FEEDBACK_SOURCES } from './_lib/constants'
@@ -95,6 +95,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro desconhecido'
       console.error('feedback patch error:', err)
+      res.status(500).json({ error: message })
+    }
+    return
+  }
+
+  if (req.method === 'DELETE') {
+    const { id } = (req.body ?? {}) as { id?: unknown }
+    if (typeof id !== 'string') {
+      res.status(400).json({ error: 'Corpo inválido: esperado { id }' })
+      return
+    }
+    try {
+      const ok = await deleteFeedback(id)
+      if (!ok) {
+        res.status(404).json({ error: 'Feedback não encontrado' })
+        return
+      }
+      res.status(200).json({ ok: true })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido'
+      console.error('feedback delete error:', err)
       res.status(500).json({ error: message })
     }
     return

@@ -158,3 +158,14 @@ export async function resolveFeedback(id: string, resolved: boolean): Promise<vo
   if (res.status === 401) throw new Error(NOT_AUTHED)
   if (!res.ok) throw new Error(await parseError(res, `Erro ${res.status} ao atualizar`))
 }
+
+export async function deleteFeedback(id: string): Promise<void> {
+  const res = await fetch('/api/feedback', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ id }),
+  })
+  if (res.status === 401) throw new Error(NOT_AUTHED)
+  if (!res.ok) throw new Error(await parseError(res, `Erro ${res.status} ao excluir`))
+}
