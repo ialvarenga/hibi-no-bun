@@ -122,6 +122,17 @@ export async function getRandomShared(excludeIds: string[]): Promise<SharedEntry
   return null
 }
 
+// Removes a shared entry from the community pool so it stops being served to
+// other users. Used by the owner to pull a reported (wrong) text. Returns
+// false for a malformed id or when nothing matched.
+export async function deleteSharedEntry(id: string): Promise<boolean> {
+  if (!UUID_RE.test(id)) return false
+  const db = getPool()
+  await ensureTable(db)
+  const result = await db.query(`DELETE FROM shared_entries WHERE id = $1`, [id])
+  return (result.rowCount ?? 0) > 0
+}
+
 export async function getSharedById(id: string): Promise<SharedEntryRow | null> {
   if (!UUID_RE.test(id)) return null
   const db = getPool()

@@ -71,7 +71,12 @@ Como as leituras próprias vivem só no IndexedDB (sem id no servidor), o report
 - **Notificação:** a cada report, um e-mail é enviado para `FEEDBACK_EMAIL_TO` via Resend. Sem
   `RESEND_API_KEY`, o envio do report continua funcionando e apenas registra um aviso.
 - **Painel do dono:** abra `/?admin` para ver os reports (mais recentes primeiro), filtrar por
-  não resolvidos e marcar como resolvido. O acesso é protegido por **login com senha** — a
+  não resolvidos, marcar como resolvido e excluir spam. Reports de textos da comunidade também
+  têm **"Remover do pool"**, que apaga aquele texto de `shared_entries` (via `DELETE
+  /api/shared/:id`, autenticado) para que ele pare de ser servido a outros usuários — a correção
+  vale para buscas futuras (quem já puxou o texto tem uma cópia local). Textos próprios não têm
+  essa opção, pois vivem só no dispositivo de quem gerou; use esses reports como sinal para
+  ajustar o prompt em `api/_lib/generateReading.ts`. O acesso é protegido por **login com senha** — a
   `ADMIN_PASSWORD` é trocada por um cookie de sessão assinado (HttpOnly, não fica na URL nem em
   logs, não é legível por JS). Configure `ADMIN_PASSWORD` e `SESSION_SECRET` (veja
   `.env.example`). A tabela `feedback` é criada automaticamente no primeiro report.

@@ -64,16 +64,44 @@ function devApi(): Plugin {
       })
 
       server.middlewares.use('/api/shared', async (req, res) => {
+        res.setHeader('Content-Type', 'application/json')
+        const url = new URL(req.url ?? '/', 'http://localhost')
+        const id = url.pathname.replace(/^\/+/, '')
+
+        // Owner-only: remove a reported text from the community pool.
+        if (req.method === 'DELETE') {
+          try {
+            const { isAuthed } = await import('./api/_lib/adminAuth.js')
+            if (!isAuthed(req.headers.cookie)) {
+              res.statusCode = 401
+              res.end(JSON.stringify({ error: 'Não autenticado' }))
+              return
+            }
+            const { deleteSharedEntry } = await import('./api/_lib/sharedDb.js')
+            const ok = await deleteSharedEntry(id)
+            if (!ok) {
+              res.statusCode = 404
+              res.end(JSON.stringify({ error: 'Pergunta compartilhada não encontrada.' }))
+              return
+            }
+            res.end(JSON.stringify({ ok: true }))
+          } catch (err) {
+            console.error('dev /api/shared delete error:', err)
+            res.statusCode = 500
+            res.end(
+              JSON.stringify({ error: err instanceof Error ? err.message : 'Erro desconhecido' }),
+            )
+          }
+          return
+        }
+
         if (req.method !== 'GET') {
           res.statusCode = 405
           res.end(JSON.stringify({ error: 'Method not allowed' }))
           return
         }
-        res.setHeader('Content-Type', 'application/json')
-        const url = new URL(req.url ?? '/', 'http://localhost')
         try {
           const { getRandomShared, getSharedById } = await import('./api/_lib/sharedDb.js')
-          const id = url.pathname.replace(/^\/+/, '')
           if (id) {
             const entry = await getSharedById(id)
             if (!entry) {

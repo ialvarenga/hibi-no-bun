@@ -169,3 +169,12 @@ export async function deleteFeedback(id: string): Promise<void> {
   if (res.status === 401) throw new Error(NOT_AUTHED)
   if (!res.ok) throw new Error(await parseError(res, `Erro ${res.status} ao excluir`))
 }
+
+// Removes a reported text from the community pool (owner action). A 404 means
+// it's already gone, which is treated as success (idempotent).
+export async function deleteSharedEntry(id: string): Promise<void> {
+  const res = await fetch(`/api/shared/${id}`, { method: 'DELETE', credentials: 'same-origin' })
+  if (res.status === 401) throw new Error(NOT_AUTHED)
+  if (res.status === 404) return
+  if (!res.ok) throw new Error(await parseError(res, `Erro ${res.status} ao remover do pool`))
+}

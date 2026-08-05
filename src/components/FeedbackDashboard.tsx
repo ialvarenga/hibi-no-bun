@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Loader2, LogOut, RefreshCw, Check, Undo2, Trash2 } from 'lucide-react'
+import { Loader2, LogOut, RefreshCw, Check, Undo2, Trash2, PackageX } from 'lucide-react'
 import {
   listFeedback,
   resolveFeedback,
   deleteFeedback,
+  deleteSharedEntry,
   adminLogin,
   adminLogout,
   NOT_AUTHED,
@@ -22,6 +23,9 @@ export default function FeedbackDashboard() {
   const [password, setPassword] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
   const [onlyUnresolved, setOnlyUnresolved] = useState(false)
+  // shared_entry_ids already removed from the pool this session — hides the
+  // button on every report pointing at the same entry.
+  const [removedFromPool, setRemovedFromPool] = useState<Set<string>>(new Set())
 
   async function load() {
     setLoading(true)
@@ -88,6 +92,29 @@ export default function FeedbackDashboard() {
       // Restore on failure.
       setRows(prev)
       setError(err instanceof Error ? err.message : 'Erro ao excluir')
+    }
+  }
+
+  async function handleRemoveFromPool(row: FeedbackRow) {
+    const sharedId = row.shared_entry_id
+    if (!sharedId) return
+    if (
+      !window.confirm(
+        'Remover este texto do pool da comunidade? Ele deixará de ser servido para outros usuários.',
+      )
+    )
+      return
+    setError(null)
+    try {
+      await deleteSharedEntry(sharedId)
+      setRemovedFromPool((s) => new Set(s).add(sharedId))
+      // The reported problem is handled — mark the report resolved too.
+      if (!row.resolved) {
+        setRows((rs) => rs.map((r) => (r.id === row.id ? { ...r, resolved: true } : r)))
+        await resolveFeedback(row.id, true).catch(() => {})
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao remover do pool')
     }
   }
 
@@ -203,7 +230,20 @@ export default function FeedbackDashboard() {
                 <span className="text-[11px] text-ink-soft">
                   {new Date(r.created_at).toLocaleString('pt-BR')}
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  {r.shared_entry_id && !removedFromPool.has(r.shared_entry_id) && (
+                    <button
+                      onClick={() => void handleRemoveFromPool(r)}
+                      className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-vermillion"
+                    >
+                      <PackageX size={12} /> Remover do pool
+                    </button>
+                  )}
+                  {r.shared_entry_id && removedFromPool.has(r.shared_entry_id) && (
+                    <span className="text-[11px] text-ink-soft inline-flex items-center gap-1">
+                      <PackageX size={12} /> Removido do pool
+                    </span>
+                  )}
                   <button
                     onClick={() => void toggleResolved(r)}
                     className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-ink-soft"
