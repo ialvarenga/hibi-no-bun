@@ -42,9 +42,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     canonicalTopics.push({ id: t.id, jp: canonical.jp, pt: canonical.pt })
   }
 
-  if (jlptLevel !== undefined && !ALLOWED_JLPT_LEVELS.includes(String(jlptLevel).trim())) {
-    res.status(400).json({ error: 'Nível JLPT inválido' })
-    return
+  // The client sends a hyphen-joined combination of the selected levels
+  // (e.g. "N4-N3"), which is the range format the prompt expects — so each
+  // part is checked against the allow-list, not the whole joined string.
+  if (jlptLevel !== undefined && String(jlptLevel).trim()) {
+    const levels = String(jlptLevel).trim().split('-')
+    if (levels.some((level) => !ALLOWED_JLPT_LEVELS.includes(level))) {
+      res.status(400).json({ error: 'Nível JLPT inválido' })
+      return
+    }
   }
 
   const apiKeyHeader = req.headers['x-anthropic-api-key']
