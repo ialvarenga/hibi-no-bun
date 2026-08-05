@@ -5,6 +5,7 @@ import FuriganaText from './FuriganaText'
 import GrammarChipRow from './GrammarChipRow'
 import ComprehensionCheck from './ComprehensionCheck'
 import SpeakButton from './SpeakButton'
+import ReportText from './ReportText'
 import type { ReadingEntry } from '../lib/types'
 
 interface TodayCardProps {
@@ -142,6 +143,16 @@ export default function TodayCard({
               Fonte: {entry.source_title || entry.source_url}
             </a>
           )}
+
+          <div className="mt-4">
+            <ReportText
+              source="own"
+              paragraph_jp={entry.paragraph_jp}
+              translation_pt={entry.translation_pt}
+              theme={entry.theme}
+              readingDate={entry.date}
+            />
+          </div>
         </div>
       )}
     </section>

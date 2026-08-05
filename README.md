@@ -56,9 +56,25 @@ real da web, adaptado aos tópicos gramaticais que você já estudou e a temas d
    npm run dev
    ```
 
-   O Vite serve o frontend **e** um middleware de dev que expõe `POST /api/generate` e
-   `GET /api/shared` localmente com a mesma lógica das funções de produção — não precisa
-   rodar `vercel dev` nem um processo separado.
+   O Vite serve o frontend **e** um middleware de dev que expõe `POST /api/generate`,
+   `GET /api/shared`, `/api/feedback` e `/api/admin-session` localmente com a mesma lógica das
+   funções de produção — não precisa rodar `vercel dev` nem um processo separado.
+
+## Feedback dos textos gerados
+
+Como os textos são gerados por IA, cada texto (o de hoje, os do histórico e os da comunidade)
+tem um botão **"Reportar erro"**: o usuário escolhe qual parte está errada (japonês, furigana,
+tradução, vocabulário, gramática, pergunta de compreensão ou outro) e pode deixar um comentário.
+Como as leituras próprias vivem só no IndexedDB (sem id no servidor), o report guarda um
+**snapshot** do texto; reports da comunidade também guardam o `shared_entry_id`.
+
+- **Notificação:** a cada report, um e-mail é enviado para `FEEDBACK_EMAIL_TO` via Resend. Sem
+  `RESEND_API_KEY`, o envio do report continua funcionando e apenas registra um aviso.
+- **Painel do dono:** abra `/?admin` para ver os reports (mais recentes primeiro), filtrar por
+  não resolvidos e marcar como resolvido. O acesso é protegido por **login com senha** — a
+  `ADMIN_PASSWORD` é trocada por um cookie de sessão assinado (HttpOnly, não fica na URL nem em
+  logs, não é legível por JS). Configure `ADMIN_PASSWORD` e `SESSION_SECRET` (veja
+  `.env.example`). A tabela `feedback` é criada automaticamente no primeiro report.
 
 ## Deploy (Vercel)
 

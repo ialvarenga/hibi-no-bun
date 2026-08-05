@@ -1,4 +1,11 @@
-import type { ComprehensionQuestion, GrammarTopic, SharedEntry, VocabItem } from './types'
+import type {
+  ComprehensionQuestion,
+  FeedbackInput,
+  FeedbackRow,
+  GrammarTopic,
+  SharedEntry,
+  VocabItem,
+} from './types'
 
 export interface GenerateRequest {
   topics: Pick<GrammarTopic, 'id' | 'jp' | 'pt'>[]
@@ -92,4 +99,62 @@ export async function retrieveShared(excludeIds: string[]): Promise<SharedEntry>
     source_url: body.source_url,
     comprehension: body.comprehension,
   }
+}
+
+async function parseError(res: Response, fallback: string): Promise<string> {
+  try {
+    const body = await res.json()
+    if (body?.error) return body.error
+  } catch {
+    // ignore — keep default message
+  }
+  return fallback
+}
+
+// Submits a user report about an AI-generated text (public endpoint).
+export async function submitFeedback(input: FeedbackInput): Promise<void> {
+  const res = await fetch('/api/feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  if (!res.ok) throw new Error(await parseError(res, `Erro ${res.status} ao enviar o feedback`))
+}
+
+// ---- Owner dashboard (session-cookie authed; credentials ride along) ----
+
+// 401 from these means "not logged in" — surfaced as this sentinel so the
+// dashboard can show its login form instead of a generic error.
+export const NOT_AUTHED = 'NOT_AUTHED'
+
+export async function adminLogin(password: string): Promise<void> {
+  const res = await fetch('/api/admin-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ password }),
+  })
+  if (!res.ok) throw new Error(await parseError(res, 'Senha incorreta.'))
+}
+
+export async function adminLogout(): Promise<void> {
+  await fetch('/api/admin-session', { method: 'DELETE', credentials: 'same-origin' })
+}
+
+export async function listFeedback(): Promise<FeedbackRow[]> {
+  const res = await fetch('/api/feedback', { credentials: 'same-origin' })
+  if (res.status === 401) throw new Error(NOT_AUTHED)
+  if (!res.ok) throw new Error(await parseError(res, `Erro ${res.status} ao carregar feedbacks`))
+  return res.json()
+}
+
+export async function resolveFeedback(id: string, resolved: boolean): Promise<void> {
+  const res = await fetch('/api/feedback', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ id, resolved }),
+  })
+  if (res.status === 401) throw new Error(NOT_AUTHED)
+  if (!res.ok) throw new Error(await parseError(res, `Erro ${res.status} ao atualizar`))
 }

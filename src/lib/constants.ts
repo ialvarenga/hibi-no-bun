@@ -1,4 +1,21 @@
-import type { GrammarTopic } from './types'
+import type { FeedbackCategory, GrammarTopic } from './types'
+
+// Which part of an AI-generated text a report is about. The ids mirror the
+// server allow-list in api/_lib/constants.ts (FEEDBACK_CATEGORIES); the labels
+// are what the user sees in the report form.
+export const FEEDBACK_CATEGORIES: { id: FeedbackCategory; label: string }[] = [
+  { id: 'paragraph', label: 'Texto em japonês' },
+  { id: 'furigana', label: 'Furigana (leitura)' },
+  { id: 'translation', label: 'Tradução' },
+  { id: 'vocab', label: 'Vocabulário' },
+  { id: 'grammar', label: 'Gramática' },
+  { id: 'comprehension', label: 'Pergunta de compreensão' },
+  { id: 'other', label: 'Outro' },
+]
+
+export const FEEDBACK_CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
+  FEEDBACK_CATEGORIES.map((c) => [c.id, c.label]),
+)
 
 export const DEFAULT_TOPICS: GrammarTopic[] = [
   { id: 'passive', jp: '受け身', pt: 'Voz passiva' },

@@ -3,6 +3,7 @@ import FuriganaText from './FuriganaText'
 import GrammarChipRow from './GrammarChipRow'
 import ComprehensionCheck from './ComprehensionCheck'
 import SpeakButton from './SpeakButton'
+import ReportText from './ReportText'
 import type { SharedEntry } from '../lib/types'
 
 interface SharedCardProps {
@@ -97,6 +98,16 @@ export default function SharedCard({
                   Fonte: {h.source_title || h.source_url}
                 </a>
               )}
+              <div className="mt-3">
+                <ReportText
+                  source="shared"
+                  sharedEntryId={h.id}
+                  paragraph_jp={h.paragraph_jp}
+                  translation_pt={h.translation_pt}
+                  theme={h.theme}
+                  readingDate={h.date}
+                />
+              </div>
             </details>
           ))}
         </div>

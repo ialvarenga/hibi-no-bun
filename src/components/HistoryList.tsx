@@ -4,6 +4,7 @@ import FuriganaText from './FuriganaText'
 import GrammarChipRow from './GrammarChipRow'
 import ComprehensionCheck from './ComprehensionCheck'
 import SpeakButton from './SpeakButton'
+import ReportText from './ReportText'
 import { resolveGrammarTopic } from '../lib/constants'
 import { scoreComprehension } from '../lib/comprehension'
 import type { ReadingEntry } from '../lib/types'
@@ -160,6 +161,15 @@ export default function HistoryList({
                     />
                   </div>
                 )}
+                <div className="mt-3">
+                  <ReportText
+                    source="own"
+                    paragraph_jp={h.paragraph_jp}
+                    translation_pt={h.translation_pt}
+                    theme={h.theme}
+                    readingDate={h.date}
+                  />
+                </div>
               </details>
             )
           })}

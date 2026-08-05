@@ -71,6 +71,45 @@ export interface VocabCard {
   lastReviewed: string | null
 }
 
+export type FeedbackCategory =
+  | 'paragraph'
+  | 'furigana'
+  | 'translation'
+  | 'vocab'
+  | 'grammar'
+  | 'comprehension'
+  | 'other'
+
+// What the client sends when a user reports an AI-generated text. Carries a
+// snapshot of the text because a user's own reading has no server id.
+export interface FeedbackInput {
+  category: FeedbackCategory
+  comment?: string
+  source: 'own' | 'shared'
+  sharedEntryId?: string
+  paragraph_jp: string
+  translation_pt?: string
+  theme?: string
+  jlptLevel?: string
+  readingDate?: string
+}
+
+// A feedback row as returned to the owner dashboard (snake_case from Postgres).
+export interface FeedbackRow {
+  id: string
+  created_at: string
+  category: string
+  comment: string | null
+  source: string
+  shared_entry_id: string | null
+  paragraph_jp: string
+  translation_pt: string | null
+  theme: string | null
+  jlpt_level: string | null
+  reading_date: string | null
+  resolved: boolean
+}
+
 export interface ExportedData {
   exported_at: string
   profile: Profile

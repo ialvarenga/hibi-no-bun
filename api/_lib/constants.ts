@@ -33,3 +33,30 @@ export const CANONICAL_TOPICS: Record<string, { jp: string; pt: string }> = {
 }
 
 export const ALLOWED_JLPT_LEVELS = ['N5', 'N4', 'N3', 'N2', 'N1']
+
+// Which part of an AI-generated text a report is about. Mirrors the label map
+// in src/lib/constants.ts (FEEDBACK_CATEGORIES) — this is the server-side
+// allow-list, the client only sends these ids.
+export const FEEDBACK_CATEGORIES = [
+  'paragraph',
+  'furigana',
+  'translation',
+  'vocab',
+  'grammar',
+  'comprehension',
+  'other',
+] as const
+
+export const FEEDBACK_SOURCES = ['own', 'shared'] as const
+
+// Portuguese labels for the category ids above. Used in the notification
+// e-mail; the client has its own copy in src/lib/constants.ts.
+export const FEEDBACK_CATEGORY_LABELS: Record<string, string> = {
+  paragraph: 'Texto em japonês',
+  furigana: 'Furigana (leitura)',
+  translation: 'Tradução',
+  vocab: 'Vocabulário',
+  grammar: 'Gramática',
+  comprehension: 'Pergunta de compreensão',
+  other: 'Outro',
+}
