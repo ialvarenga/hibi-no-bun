@@ -4,6 +4,7 @@ import {
   DEFAULT_SELECTED_THEMES,
   DEFAULT_THEMES,
   DEFAULT_JLPT_LEVELS,
+  DEFAULT_REVIEW_BATCH_SIZE,
   JLPT_LEVELS,
 } from './constants'
 import { todayStr, addDaysStr } from './date'
@@ -73,6 +74,7 @@ function defaultProfile(): Profile {
     apiKey: '',
     jlptLevels: DEFAULT_JLPT_LEVELS,
     shareGenerations: false,
+    reviewBatchSize: DEFAULT_REVIEW_BATCH_SIZE,
   }
 }
 

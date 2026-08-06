@@ -37,6 +37,7 @@ export interface Profile {
   apiKey: string
   jlptLevels: string[]
   shareGenerations: boolean
+  reviewBatchSize: number
 }
 
 // A reading retrieved from the shared community pool (GET /api/shared).

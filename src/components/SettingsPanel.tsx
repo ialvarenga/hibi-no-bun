@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { Check, Bell, BellOff, Eye, EyeOff, KeyRound, Trash2, Users } from 'lucide-react'
-import { DEFAULT_TOPICS, DEFAULT_THEMES, JLPT_LEVELS } from '../lib/constants'
+import {
+  DEFAULT_TOPICS,
+  DEFAULT_THEMES,
+  JLPT_LEVELS,
+  REVIEW_BATCH_SIZE_OPTIONS,
+} from '../lib/constants'
 import type { Profile } from '../lib/types'
 
 interface SettingsPanelProps {
@@ -10,6 +15,7 @@ interface SettingsPanelProps {
   onSetApiKey: (key: string) => void
   onToggleJlptLevel: (level: string) => void
   onToggleShareGenerations: () => void
+  onSetReviewBatchSize: (size: number) => void
   notificationPermission: NotificationPermission | 'unsupported'
   onRequestNotifications: () => void
   onResetData: () => void
@@ -22,6 +28,7 @@ export default function SettingsPanel({
   onSetApiKey,
   onToggleJlptLevel,
   onToggleShareGenerations,
+  onSetReviewBatchSize,
   notificationPermission,
   onRequestNotifications,
   onResetData,
@@ -102,6 +109,33 @@ export default function SettingsPanel({
               }`}
             >
               {name}
+            </button>
+          )
+        })}
+      </div>
+
+      <h2 className="text-sm font-bold uppercase tracking-wider mb-3 text-indigo">
+        Tamanho do lote de revisão
+      </h2>
+      <p className="text-xs text-ink-soft mb-2">
+        Quantas palavras vencidas entram de uma vez na revisão de vocabulário. O restante
+        fica na fila para a próxima sessão.
+      </p>
+      <div className="flex flex-wrap gap-2 mb-6">
+        {REVIEW_BATCH_SIZE_OPTIONS.map((size) => {
+          const on = profile.reviewBatchSize === size
+          return (
+            <button
+              key={size}
+              onClick={() => onSetReviewBatchSize(size)}
+              className={`border rounded-full px-3 py-1.5 text-xs flex items-center gap-1.5 transition-colors ${
+                on
+                  ? 'bg-indigo border-indigo text-white'
+                  : 'bg-transparent border-paper-line text-ink-soft'
+              }`}
+            >
+              {on && <Check size={12} />}
+              {size}
             </button>
           )
         })}

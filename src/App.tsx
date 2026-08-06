@@ -7,7 +7,7 @@ import TodayCard from './components/TodayCard'
 import HistoryList from './components/HistoryList'
 import SharedCard from './components/SharedCard'
 import VocabReview from './components/VocabReview'
-import { DEFAULT_TOPICS, JLPT_LEVELS } from './lib/constants'
+import { DEFAULT_TOPICS, DEFAULT_REVIEW_BATCH_SIZE, JLPT_LEVELS } from './lib/constants'
 import {
   loadProfile,
   saveProfile,
@@ -47,6 +47,7 @@ export default function App() {
   const [vocabReviewOpen, setVocabReviewOpen] = useState(false)
   const [dueVocabCards, setDueVocabCards] = useState<VocabCard[]>([])
   const [dueVocabCount, setDueVocabCount] = useState(0)
+  const [queuedVocabCount, setQueuedVocabCount] = useState(0)
   const [sharedEntries, setSharedEntries] = useState<SharedEntry[]>([])
   const [retrievingShared, setRetrievingShared] = useState(false)
   const [sharedError, setSharedError] = useState<string | null>(null)
@@ -122,9 +123,16 @@ export default function App() {
     persistProfile({ ...profile, shareGenerations: !profile.shareGenerations })
   }
 
+  function setReviewBatchSize(size: number) {
+    if (!profile) return
+    persistProfile({ ...profile, reviewBatchSize: size })
+  }
+
   async function handleOpenVocabReview() {
+    const batchSize = profile?.reviewBatchSize ?? DEFAULT_REVIEW_BATCH_SIZE
     const cards = await loadDueVocabCards()
-    setDueVocabCards(cards)
+    setDueVocabCards(cards.slice(0, batchSize))
+    setQueuedVocabCount(Math.max(cards.length - batchSize, 0))
     setVocabReviewOpen(true)
   }
 
@@ -287,6 +295,7 @@ export default function App() {
         {vocabReviewOpen && (
           <VocabReview
             cards={dueVocabCards}
+            queuedCount={queuedVocabCount}
             onReview={(id, remembered) => void handleReviewVocabCard(id, remembered)}
             onClose={handleCloseVocabReview}
           />
@@ -300,6 +309,7 @@ export default function App() {
             onSetApiKey={setApiKey}
             onToggleJlptLevel={toggleJlptLevel}
             onToggleShareGenerations={toggleShareGenerations}
+            onSetReviewBatchSize={setReviewBatchSize}
             notificationPermission={notificationPermission}
             onRequestNotifications={() => void handleRequestNotifications()}
             onResetData={() => void handleResetData()}

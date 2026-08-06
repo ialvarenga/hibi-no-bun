@@ -71,3 +71,8 @@ export const JLPT_LEVELS: { value: string; label: string }[] = [
 ]
 
 export const DEFAULT_JLPT_LEVELS = ['N4', 'N3']
+
+// Cards per review session. Due cards beyond this stay queued for the next
+// session instead of all showing up at once. User-configurable in Settings.
+export const DEFAULT_REVIEW_BATCH_SIZE = 10
+export const REVIEW_BATCH_SIZE_OPTIONS = [5, 10, 15, 20, 30]

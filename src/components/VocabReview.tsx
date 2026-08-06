@@ -4,11 +4,12 @@ import type { VocabCard } from '../lib/types'
 
 interface VocabReviewProps {
   cards: VocabCard[]
+  queuedCount: number
   onReview: (id: string, remembered: boolean) => void
   onClose: () => void
 }
 
-export default function VocabReview({ cards, onReview, onClose }: VocabReviewProps) {
+export default function VocabReview({ cards, queuedCount, onReview, onClose }: VocabReviewProps) {
   const [index, setIndex] = useState(0)
   const [revealed, setRevealed] = useState(false)
 
@@ -38,7 +39,11 @@ export default function VocabReview({ cards, onReview, onClose }: VocabReviewPro
       {!card ? (
         <div className="text-center py-8">
           <PartyPopper className="mx-auto mb-2 text-moss" size={28} />
-          <p className="text-sm text-ink-soft">Revisão concluída por hoje.</p>
+          <p className="text-sm text-ink-soft">
+            {queuedCount > 0
+              ? `Lote concluído. Mais ${queuedCount} ${queuedCount === 1 ? 'palavra espera' : 'palavras esperam'} na fila — abra a revisão de novo para o próximo lote.`
+              : 'Revisão concluída por hoje.'}
+          </p>
         </div>
       ) : (
         <div>
