@@ -74,6 +74,20 @@ export const GRAMMAR_EXPLANATIONS: Record<string, GrammarExplanation> = {
     example_pt: 'Se chover, vou ficar em casa.',
     source_url: 'https://guidetojapanese.org/learn/grammar/conditionals',
   },
+  conditional_to: {
+    explanation_pt:
+      'Terceira forma de dizer "se"/"quando", usada para consequências naturais e automáticas — sempre que X acontece, Y acontece como resultado inevitável. Forma-se acrescentando と diretamente à forma simples (dicionário) do verbo/adjetivo (春になる→春になると). Por descrever um resultado automático, a segunda oração não pode ser um pedido, convite ou expressão de intenção.',
+    example_jp: '春[はる]になると、桜[さくら]が咲[さ]く。',
+    example_pt: 'Quando a primavera chega, as cerejeiras florescem.',
+    source_url: 'https://guidetojapanese.org/learn/grammar/conditionals',
+  },
+  conditional_nara: {
+    explanation_pt:
+      'Quarta forma de dizer "se", usada para reagir a algo que a outra pessoa acabou de dizer ou a uma situação já conhecida, com o sentido de "se é esse o caso...". Forma-se acrescentando なら à forma simples do verbo/i-adjetivo, ou diretamente ao substantivo/na-adjetivo (sem だ). Diferente de ば e たら, o fato da segunda oração pode até já estar em curso quando a condição é dita.',
+    example_jp: '日本[にほん]に行[い]くなら、京都[きょうと]がいいよ。',
+    example_pt: 'Se você vai ao Japão, Kyoto é uma boa escolha.',
+    source_url: 'https://guidetojapanese.org/learn/grammar/conditionals',
+  },
   te_form: {
     explanation_pt:
       'Uma das formas mais versáteis do verbo: conecta ações em sequência, forma pedidos com ください, descreve estados contínuos com いる, e se combina com auxiliares como ある, おく, いく e くる para dar nuances diferentes. Ela mesma não indica tempo — quem fecha a frase é o último verbo.',

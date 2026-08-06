@@ -27,6 +27,8 @@ export const CANONICAL_TOPICS: Record<string, { jp: string; pt: string }> = {
   volitional: { jp: '意向形', pt: 'Volitivo' },
   conditional_ba: { jp: '〜ば', pt: 'Condicional (ば)' },
   conditional_tara: { jp: '〜たら', pt: 'Condicional (たら)' },
+  conditional_to: { jp: '〜と', pt: 'Condicional (と)' },
+  conditional_nara: { jp: '〜なら', pt: 'Condicional (なら)' },
   te_form: { jp: 'て形', pt: 'Forma て' },
   comparison: { jp: '比較', pt: 'Comparação' },
   giving_receiving: { jp: 'やりもらい', pt: 'Dar e receber' },

@@ -27,6 +27,8 @@ export const DEFAULT_TOPICS: GrammarTopic[] = [
   { id: 'volitional', jp: '意向形', pt: 'Volitivo' },
   { id: 'conditional_ba', jp: '〜ば', pt: 'Condicional (ば)' },
   { id: 'conditional_tara', jp: '〜たら', pt: 'Condicional (たら)' },
+  { id: 'conditional_to', jp: '〜と', pt: 'Condicional (と)' },
+  { id: 'conditional_nara', jp: '〜なら', pt: 'Condicional (なら)' },
   { id: 'te_form', jp: 'て形', pt: 'Forma て' },
   { id: 'comparison', jp: '比較', pt: 'Comparação' },
   { id: 'giving_receiving', jp: 'やりもらい', pt: 'Dar e receber' },
