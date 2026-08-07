@@ -8,12 +8,23 @@
 // O arquivo JSON deve ser um array de objetos no formato descrito no
 // cabeçalho de `validateEntry` abaixo (mesmo shape de GeneratedReading, mais
 // date/theme/topicsUsed/jlptLevel — veja src/lib/types.ts:ReadingEntry e
-// api/_lib/generateReading.ts:GeneratedReading).
+// api/_lib/generateReading.ts:GeneratedReading). Também aceita
+// { "batchId": "...", "entries": [...] } — veja abaixo.
 //
 // Cada entrada pode incluir um campo "id" (UUID). Se ausente, o script deriva
 // um id determinístico a partir de date+theme+paragraph_jp, então rodar o
 // script de novo com o mesmo texto não duplica a linha — é isso que
-// implementa o "checar se já está na base antes de inserir".
+// implementa o "checar se já está na base antes de inserir" por entrada.
+//
+// Opcionalmente, o JSON pode ter um "batchId" (qualquer string única sua,
+// ex. o id da geração na outra API) no nível raiz:
+//   { "batchId": "2026-08-08-manha", "entries": [...] }
+// O script guarda os batchId já processados com sucesso (sem entradas
+// inválidas) na tabela `shared_ingestions`. Rodar de novo com o MESMO
+// batchId pula a importação inteira sem tocar no banco; um batchId
+// DIFERENTE (ou ausente) processa normalmente. Se o lote teve alguma
+// entrada inválida, o batchId não é gravado — rodar de novo com o mesmo id
+// (depois de corrigir o JSON) tenta de novo.
 //
 // Precisa de DATABASE_URL (ou POSTGRES_URL) no ambiente ou em um `.env` na
 // raiz do projeto (mesmo formato usado por `npm run dev`/Vercel).
@@ -98,6 +109,11 @@ async function ensureTable(db) {
     source_url TEXT,
     comprehension JSONB
   )`)
+  await db.query(`CREATE TABLE IF NOT EXISTS shared_ingestions (
+    id TEXT PRIMARY KEY,
+    ingested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    entry_count INTEGER NOT NULL
+  )`)
 }
 
 // Content-derived id: same input -> same id, so re-running the script on a
@@ -179,8 +195,13 @@ async function main() {
 
   const raw = JSON.parse(readFileSync(path.resolve(jsonPath), 'utf-8'))
   const entries = Array.isArray(raw) ? raw : raw.entries
+  const batchId = Array.isArray(raw) ? undefined : raw.batchId
   if (!Array.isArray(entries)) {
     console.error('O JSON deve ser um array de entradas (ou um objeto { "entries": [...] }).')
+    process.exit(1)
+  }
+  if (batchId !== undefined && (typeof batchId !== 'string' || batchId.trim() === '')) {
+    console.error('"batchId", quando presente, deve ser uma string não vazia.')
     process.exit(1)
   }
 
@@ -191,6 +212,14 @@ async function main() {
 
   try {
     await ensureTable(pool)
+
+    if (batchId) {
+      const seen = await pool.query('SELECT ingested_at FROM shared_ingestions WHERE id = $1', [batchId])
+      if (seen.rowCount > 0) {
+        console.log(`Lote "${batchId}" já foi importado em ${seen.rows[0].ingested_at} — nada a fazer.`)
+        return
+      }
+    }
 
     for (const [index, entry] of entries.entries()) {
       const errors = validateEntry(entry, index)
@@ -230,6 +259,19 @@ async function main() {
         duplicates++
         console.log(`  já existia ${id} — pulado`)
       }
+    }
+
+    if (batchId && invalid === 0) {
+      await pool.query(
+        `INSERT INTO shared_ingestions (id, entry_count) VALUES ($1, $2)
+         ON CONFLICT (id) DO NOTHING`,
+        [batchId, entries.length],
+      )
+      console.log(`Lote "${batchId}" marcado como importado.`)
+    } else if (batchId) {
+      console.log(
+        `Lote "${batchId}" NÃO marcado como importado (havia entradas inválidas) — rodar de novo depois de corrigir vai tentar de novo.`,
+      )
     }
   } finally {
     await pool.end()

@@ -1,0 +1,223 @@
+{
+    "batchId": "",
+    "entries": [
+        {
+            "date": "2026-08-07",
+            "theme": "Tecnologia",
+            "topicsUsed": [
+                "Forma て",
+                "Condicional たら"
+            ],
+            "jlptLevel": "N4",
+            "paragraph_jp": "最[さい]近[きん]はAIを作[つく]るために特[とく]別[べつ]な部[ぶ]品[ひん]がたくさん必[ひつ]要[よう]になっています。そのため、来[らい]年[ねん]は新[あたら]しいスマホの値[ね]段[だん]が上[あ]がると予[よ]想[そう]されています。安[やす]く買[か]いたい人[ひと]は、今[いま]からお金[かね]を準[じゅん]備[び]しておいたら安[あん]心[しん]です。",
+            "translation_pt": "Recentemente, muitos componentes especiais têm sido necessários para produzir IA. Por isso, prevê-se que o preço dos novos smartphones suba no próximo ano. Para quem quer comprar mais barato, é uma boa ideia preparar o dinheiro desde já.",
+            "vocab": [
+                {
+                    "word": "最近",
+                    "reading": "さいきん",
+                    "meaning_pt": "recentemente"
+                },
+                {
+                    "word": "特別",
+                    "reading": "とくべつ",
+                    "meaning_pt": "especial"
+                },
+                {
+                    "word": "部品",
+                    "reading": "ぶひん",
+                    "meaning_pt": "peças / componentes"
+                },
+                {
+                    "word": "必要",
+                    "reading": "ひつよう",
+                    "meaning_pt": "necessário"
+                },
+                {
+                    "word": "値段",
+                    "reading": "ねだん",
+                    "meaning_pt": "preço"
+                },
+                {
+                    "word": "予想",
+                    "reading": "よそう",
+                    "meaning_pt": "previsão / expectativa"
+                },
+                {
+                    "word": "準備",
+                    "reading": "じゅんび",
+                    "meaning_pt": "preparação"
+                }
+            ],
+            "grammar_used": [
+                "te_form",
+                "conditional_tara"
+            ],
+            "source_title": "AI需要によるチップ不足で2026年にはスマホの販売価格が6.9%上昇するとの予測 - GIGAZINE",
+            "source_url": "https://gigazine.net/news/20251217-smartphone-prices-rise-2026-ai-chip-shortage/",
+            "comprehension": [
+                {
+                    "question": "来年スマホの値段が上がると予想されている理由は何ですか。",
+                    "choices": [
+                        "新しいスマホの種類が増えるから",
+                        "AIを作るために特別な部品が必要だから",
+                        "外国でスマホを買う人が減っているから",
+                        "古いスマホの修理費用が高くなったから"
+                    ],
+                    "answer_index": 1
+                },
+                {
+                    "question": "安くスマホを買いたい人は、どうしておくと良いですか。",
+                    "choices": [
+                        "古いスマホを今すぐ売る",
+                        "来年までスマホを使わない",
+                        "今からお金を用意しておく",
+                        "新しい部品を自分で注文する"
+                    ],
+                    "answer_index": 2
+                }
+            ]
+        },
+        {
+            "date": "2026-08-07",
+            "theme": "Culinária",
+            "topicsUsed": [
+                "Voz passiva",
+                "Dar e receber"
+            ],
+            "jlptLevel": "N3",
+            "paragraph_jp": "ラーメンは、外[がい]国[こく]から日[に]本[ほん]に伝[つた]わった後[あと]に独[どく]自[じ]に進[しん]化[か]し、今[いま]では国[こく]民[みん]食[しょく]として広[ひろ]く愛[あい]されています。外[がい]国[こく]からの観[かん]光[こう]客[きゃく]にも大[たい]変[へん]人[にん]気[き]があり、日[に]本[ほん]を訪[おとず]れた友[ゆう]人[じん]においしいラーメン店[みせ]を教[おし]えてあげると、いつもとても喜[よろこ]ばれます。",
+            "translation_pt": "O lámen evoluiu de forma única no Japão após ter sido trazido do exterior e, hoje em dia, é amplamente apreciado como um prato nacional. É extremamente popular também entre turistas estrangeiros, e recomendar boas casas de lámen a amigos que visitam o Japão sempre traz muita alegria.",
+            "vocab": [
+                {
+                    "word": "独自",
+                    "reading": "どくじ",
+                    "meaning_pt": "próprio / original"
+                },
+                {
+                    "word": "進化",
+                    "reading": "しんか",
+                    "meaning_pt": "evolução"
+                },
+                {
+                    "word": "国民食",
+                    "reading": "こくみんしょく",
+                    "meaning_pt": "prato nacional"
+                },
+                {
+                    "word": "観光客",
+                    "reading": "かんこうきゃく",
+                    "meaning_pt": "turista"
+                },
+                {
+                    "word": "訪れる",
+                    "reading": "おとずれる",
+                    "meaning_pt": "visitar"
+                },
+                {
+                    "word": "友人",
+                    "reading": "ゆうじん",
+                    "meaning_pt": "amigo"
+                }
+            ],
+            "grammar_used": [
+                "passive",
+                "giving_receiving"
+            ],
+            "source_title": "日本独自の食文化として定着したラーメンについて大調査!【1000人アンケート】 - ナビット",
+            "source_url": "https://www.navit-j.com/media/?p=103690",
+            "comprehension": [
+                {
+                    "question": "文章によると、ラーメンはどのようにして現在の形になりましたか。",
+                    "choices": [
+                        "外国から伝わった後に日本独自で進化して国民食になった",
+                        "日本で生まれてからすぐに世界中に広がった",
+                        "伝統的な日本の料理として昔から変わっていない",
+                        "外国人観光客が日本の料理をアレンジして作った"
+                    ],
+                    "answer_index": 0
+                },
+                {
+                    "question": "日本を訪れた友人にラーメン店を教えると、どうなりますか。",
+                    "choices": [
+                        "友人は自分で新しい店を探しに行く",
+                        "友人はあまり関心を持たない",
+                        "友人はとても喜んでくれる",
+                        "友人に別の料理を勧められる"
+                    ],
+                    "answer_index": 2
+                }
+            ]
+        },
+        {
+            "date": "2026-08-07",
+            "theme": "Viagem",
+            "topicsUsed": [
+                "Honorífico respeito",
+                "Forma potencial"
+            ],
+            "jlptLevel": "N2",
+            "paragraph_jp": "京[きょう]都[と]は歴[れき]史[し]的[てき]な街[まち]並[な]みや有[ゆう]名[めい]な寺[じ]社[しゃ]が多[おお]く、年[ねん]間[かん]を通[とお]して多[おお]くの観[かん]光[こう]客[きゃく]にご覧[らん]になります。特[とく]に秋[あき]の紅[こう]葉[よう]シーズンは非[ひ]常[じょう]に混[こん]雑[ざつ]しますが、朝[あさ]早[はや]くに出[しゅっ]発[ぱつ]すれば静[しず]かな雰[ふん]囲[い]気[き]を存[ぞん]分[ぶん]に楽[たの]しむことができます。時[じ]期[き]を選[えら]んで訪[おとず]れることが大[たい]切[せつ]です。",
+            "translation_pt": "Kyoto possui muitas paisagens urbanas históricas e templos famosos, atraindo muitos visitantes ao longo do ano. A estação das folhas de outono é particularmente movimentada, mas sair bem cedo permite aproveitar ao máximo a atmosfera tranquila. É importante escolher o momento certo para visitar.",
+            "vocab": [
+                {
+                    "word": "歴史的",
+                    "reading": "れきしてき",
+                    "meaning_pt": "histórico"
+                },
+                {
+                    "word": "街並み",
+                    "reading": "まちなみ",
+                    "meaning_pt": "paisagem urbana / ruas"
+                },
+                {
+                    "word": "紅葉",
+                    "reading": "こうよう",
+                    "meaning_pt": "folhas de outono"
+                },
+                {
+                    "word": "混雑",
+                    "reading": "こんざつ",
+                    "meaning_pt": "congestão / aglomeração"
+                },
+                {
+                    "word": "雰囲気",
+                    "reading": "ふんいき",
+                    "meaning_pt": "atmosfera / ambiente"
+                },
+                {
+                    "word": "存分に",
+                    "reading": "ぞんぶんに",
+                    "meaning_pt": "ao máximo / plenamente"
+                }
+            ],
+            "grammar_used": [
+                "keigo_sonkei",
+                "potential"
+            ],
+            "source_title": "【2026年最新】京都観光完全ガイド|プロが教えるおすすめ定番スポットと混雑回避のコツ",
+            "source_url": "https://www.airtrip.jp/travel-column/27623",
+            "comprehension": [
+                {
+                    "question": "京都の観光について、秋のシーズンにはどのような特徴がありますか。",
+                    "choices": [
+                        "観光客がほとんどいなくなる",
+                        "非常に混雑する",
+                        "寺社がすべて閉まる",
+                        "朝の出発ができなくなる"
+                    ],
+                    "answer_index": 1
+                },
+                {
+                    "question": "京都で静かな雰囲気を楽しむためには、どうすることが勧められていますか。",
+                    "choices": [
+                        "夜遅くホテルを出る",
+                        "秋以外の季節に行かない",
+                        "朝早くに出発する",
+                        "観光客が多い場所だけをまわる"
+                    ],
+                    "answer_index": 2
+                }
+            ]
+        }
+    ]
+}
