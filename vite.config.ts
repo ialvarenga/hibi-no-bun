@@ -78,6 +78,51 @@ function devApi(): Plugin {
         });
       });
 
+      // Registered before the broader "/api/shared" mount below so this
+      // more specific path wins the prefix match (mirrors how Vercel's
+      // file-based routing prefers the static api/shared/import.ts route
+      // over the dynamic api/shared/[id].ts one).
+      server.middlewares.use("/api/shared/import", async (req, res) => {
+        res.setHeader("Content-Type", "application/json");
+        if (req.method !== "POST") {
+          res.statusCode = 405;
+          res.end(JSON.stringify({ error: "Method not allowed" }));
+          return;
+        }
+        try {
+          const { isAuthed } = await import("./api/_lib/adminAuth.js");
+          if (!isAuthed(req.headers.cookie)) {
+            res.statusCode = 401;
+            res.end(JSON.stringify({ error: "Não autenticado" }));
+            return;
+          }
+          const body = await readJsonBody(req);
+          const entries = Array.isArray(body.entries) ? body.entries : null;
+          if (!entries) {
+            res.statusCode = 400;
+            res.end(
+              JSON.stringify({ error: "Corpo inválido: esperado { entries: [...] }" }),
+            );
+            return;
+          }
+          const batchId =
+            typeof body.batchId === "string" && body.batchId.trim()
+              ? body.batchId.trim()
+              : undefined;
+          const { importSharedEntries } = await import("./api/_lib/sharedDb.js");
+          const result = await importSharedEntries(entries, batchId);
+          res.end(JSON.stringify(result));
+        } catch (err) {
+          console.error("dev /api/shared/import error:", err);
+          res.statusCode = 500;
+          res.end(
+            JSON.stringify({
+              error: err instanceof Error ? err.message : "Erro desconhecido",
+            }),
+          );
+        }
+      });
+
       server.middlewares.use("/api/shared", async (req, res) => {
         res.setHeader("Content-Type", "application/json");
         const url = new URL(req.url ?? "/", "http://localhost");

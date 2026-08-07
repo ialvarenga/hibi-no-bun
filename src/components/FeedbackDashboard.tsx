@@ -20,6 +20,7 @@ import {
 import { FEEDBACK_CATEGORY_LABELS } from "../lib/constants";
 import type { FeedbackRow } from "../lib/types";
 import SharedPoolPanel from "./SharedPoolPanel";
+import SharedPoolImportPanel from "./SharedPoolImportPanel";
 
 // Owner-only view, reached at /?admin. The ?admin flag carries no secret — the
 // real gate is the HttpOnly session cookie set by /api/admin-session. If the
@@ -37,7 +38,7 @@ export default function FeedbackDashboard() {
   const [removedFromPool, setRemovedFromPool] = useState<Set<string>>(
     new Set(),
   );
-  const [tab, setTab] = useState<"feedback" | "pool">("feedback");
+  const [tab, setTab] = useState<"feedback" | "pool" | "import">("feedback");
 
   async function load() {
     setLoading(true);
@@ -195,8 +196,10 @@ export default function FeedbackDashboard() {
                 {unresolvedCount === 1 ? "resolvido" : "resolvidos"})
               </span>
             </>
-          ) : (
+          ) : tab === "pool" ? (
             "Pool da comunidade"
+          ) : (
+            "Importar textos"
           )}
         </h1>
         <div className="flex items-center gap-2">
@@ -243,10 +246,24 @@ export default function FeedbackDashboard() {
         >
           Pool
         </button>
+        <button
+          onClick={() => setTab("import")}
+          className={`rounded-full px-3 py-1.5 text-xs font-medium border ${
+            tab === "import"
+              ? "bg-indigo text-white border-indigo"
+              : "border-paper-line text-ink-soft"
+          }`}
+        >
+          Importar
+        </button>
       </div>
 
       {tab === "pool" && (
         <SharedPoolPanel onAuthExpired={() => setAuthed(false)} />
+      )}
+
+      {tab === "import" && (
+        <SharedPoolImportPanel onAuthExpired={() => setAuthed(false)} />
       )}
 
       {tab === "feedback" && (

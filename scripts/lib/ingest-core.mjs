@@ -1,6 +1,6 @@
-// Shared logic between the manual CLI (scripts/import-shared-entries.mjs)
-// and the build-time hook (scripts/deploy-ingest.mjs). Pure: never calls
-// process.exit — callers decide how to react to the returned summary.
+// Ingestion logic used by the manual CLI (scripts/import-shared-entries.mjs).
+// Pure: never calls process.exit — callers decide how to react to the
+// returned summary.
 
 import { Pool } from 'pg'
 import { createHash } from 'node:crypto'

@@ -3,6 +3,7 @@ import type {
   FeedbackInput,
   FeedbackRow,
   GrammarTopic,
+  ImportResult,
   SharedEntry,
   SharedEntryListResponse,
   VocabItem,
@@ -215,6 +216,25 @@ export async function listSharedEntries(
     throw new Error(
       await parseError(res, `Erro ${res.status} ao carregar o pool`),
     );
+  return res.json();
+}
+
+// Bulk-imports pasted/uploaded entries into the community pool (owner
+// action, "Importar" tab). `batchId` is optional — when set, re-submitting
+// the exact same JSON later is a no-op instead of re-validating everything.
+export async function importSharedEntries(
+  entries: unknown[],
+  batchId?: string,
+): Promise<ImportResult> {
+  const res = await fetch("/api/shared/import", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ entries, batchId }),
+  });
+  if (res.status === 401) throw new Error(NOT_AUTHED);
+  if (!res.ok)
+    throw new Error(await parseError(res, `Erro ${res.status} ao importar`));
   return res.json();
 }
 

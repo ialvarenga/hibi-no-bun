@@ -95,22 +95,6 @@ Como as leituras próprias vivem só no IndexedDB (sem id no servidor), o report
    pelo preset Vite da Vercel). A pasta `api/` é publicada como Vercel Functions
    automaticamente.
 
-### Ingestão automática do pool compartilhado no deploy
-
-`npm run build` chama `scripts/deploy-ingest.mjs` antes de compilar. Em builds de
-produção na Vercel (`VERCEL_ENV=production`, injetada automaticamente), se existir um
-`entries.json` na raiz do projeto, ele é importado para `shared_entries` nesse momento —
-não precisa rodar nada manualmente contra o banco de produção. Fluxo de uso: gere os
-textos do dia (veja `scripts/generate-shared-entries.prompt.md`), salve/atualize
-`entries.json` (opcionalmente com um `"batchId"` único para não reimportar o mesmo lote a
-cada novo deploy), faça commit e push — o próximo deploy cuida da inserção.
-
-Esse passo nunca falha o build: arquivo ausente, banco indisponível ou entradas
-inválidas só geram um log (prefixado com `[deploy-ingest]`) e o build segue normalmente.
-Fora de builds de produção na Vercel (local, preview) o passo é pulado. Para importar na
-mão e ver erros de validação "altos" (que travam o comando), use
-`npm run import:shared -- caminho/para/arquivo.json`.
-
 Para outro provedor serverless, adapte `api/generate.ts`/`api/shared/` — a lógica de geração
 está isolada em `api/_lib/generateReading.ts` e a de persistência compartilhada em
 `api/_lib/sharedDb.ts` (acesso via `pg`, sem nada específico da Vercel), exceto o uso de

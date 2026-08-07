@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import type { GeneratedReading } from "./generateReading";
+import { validateEntry, deriveId, type RawSharedEntry } from "./sharedEntryValidation";
 
 export interface SharedEntryInput extends GeneratedReading {
   date: string;
@@ -64,6 +65,15 @@ async function ensureTable(db: Pool): Promise<void> {
           source_url TEXT,
           comprehension JSONB
         )`,
+      )
+      .then(() =>
+        db.query(
+          `CREATE TABLE IF NOT EXISTS shared_ingestions (
+            id TEXT PRIMARY KEY,
+            ingested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            entry_count INTEGER NOT NULL
+          )`,
+        ),
       )
       .then(() => undefined);
   }
@@ -200,4 +210,96 @@ export async function getSharedById(
     [id],
   );
   return result.rows[0] ?? null;
+}
+
+export interface ImportResult {
+  batchId?: string;
+  batchSkipped: boolean;
+  totalEntries: number;
+  inserted: number;
+  duplicates: number;
+  invalid: number;
+  messages: string[];
+}
+
+// Bulk-imports entries pasted/uploaded by the owner in the admin panel
+// (Importar tab). Same validation + per-entry dedup (explicit or
+// content-derived id, ON CONFLICT DO NOTHING) as scripts/import-shared-entries.mjs,
+// plus optional whole-batch dedup via `batchId` (shared_ingestions) so
+// re-submitting the same JSON is a no-op instead of a validation re-run.
+export async function importSharedEntries(
+  rawEntries: unknown[],
+  batchId?: string,
+): Promise<ImportResult> {
+  const db = getPool();
+  await ensureTable(db);
+  const messages: string[] = [];
+  let inserted = 0;
+  let duplicates = 0;
+  let invalid = 0;
+
+  if (batchId) {
+    const seen = await db.query<{ ingested_at: string }>(
+      `SELECT ingested_at FROM shared_ingestions WHERE id = $1`,
+      [batchId],
+    );
+    if ((seen.rowCount ?? 0) > 0) {
+      messages.push(`Lote "${batchId}" já foi importado em ${seen.rows[0].ingested_at} — nada a fazer.`);
+      return { batchId, batchSkipped: true, totalEntries: rawEntries.length, inserted, duplicates, invalid, messages };
+    }
+  }
+
+  for (const [index, raw] of rawEntries.entries()) {
+    const entry = raw as RawSharedEntry;
+    const { errors, warnings } = validateEntry(entry, index);
+    for (const w of warnings) messages.push(`aviso ${w}`);
+    if (errors.length > 0) {
+      invalid++;
+      for (const e of errors) messages.push(`erro ${e}`);
+      continue;
+    }
+
+    const id = entry.id ?? deriveId(entry);
+    const result = await db.query(
+      `INSERT INTO shared_entries
+         (id, date, theme, topics_used, jlpt_level, paragraph_jp, translation_pt, vocab, grammar_used, source_title, source_url, comprehension)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       ON CONFLICT (id) DO NOTHING
+       RETURNING id`,
+      [
+        id,
+        entry.date,
+        entry.theme,
+        entry.topicsUsed,
+        entry.jlptLevel ?? null,
+        entry.paragraph_jp,
+        entry.translation_pt,
+        JSON.stringify(entry.vocab),
+        entry.grammar_used,
+        entry.source_title,
+        entry.source_url,
+        JSON.stringify(entry.comprehension),
+      ],
+    );
+
+    if ((result.rowCount ?? 0) > 0) {
+      inserted++;
+      messages.push(`inserido ${id} (${entry.date} · ${entry.theme})`);
+    } else {
+      duplicates++;
+      messages.push(`já existia ${id} — pulado`);
+    }
+  }
+
+  if (batchId && invalid === 0) {
+    await db.query(
+      `INSERT INTO shared_ingestions (id, entry_count) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING`,
+      [batchId, rawEntries.length],
+    );
+    messages.push(`Lote "${batchId}" marcado como importado.`);
+  } else if (batchId) {
+    messages.push(`Lote "${batchId}" NÃO marcado como importado (havia entradas inválidas).`);
+  }
+
+  return { batchId, batchSkipped: false, totalEntries: rawEntries.length, inserted, duplicates, invalid, messages };
 }

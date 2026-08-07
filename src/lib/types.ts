@@ -83,6 +83,17 @@ export interface SharedEntryListResponse {
   total: number;
 }
 
+// Result of POST /api/shared/import (admin panel's "Importar" tab).
+export interface ImportResult {
+  batchId?: string;
+  batchSkipped: boolean;
+  totalEntries: number;
+  inserted: number;
+  duplicates: number;
+  invalid: number;
+  messages: string[];
+}
+
 export interface VocabCard {
   id: string; // `${word}::${reading}`
   word: string;

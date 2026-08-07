@@ -5,9 +5,9 @@
 // Uso:
 //   node scripts/import-shared-entries.mjs caminho/para/textos.json
 //
-// Para rodar automaticamente no deploy da Vercel (sem precisar disparar isso
-// à mão contra produção), veja scripts/deploy-ingest.mjs — esse aqui é só
-// para uso manual/local, e falha alto (exit 1) se algo estiver inválido.
+// Para uso manual/local; falha alto (exit 1) se alguma entrada estiver
+// inválida. Para importar direto de produção sem acesso ao banco local, use
+// o painel admin (/?admin → aba "Importar").
 //
 // O arquivo JSON deve ser um array de objetos no formato descrito em
 // scripts/lib/ingest-core.mjs:validateEntry (mesmo shape de GeneratedReading,
