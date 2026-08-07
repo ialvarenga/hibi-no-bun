@@ -68,10 +68,17 @@ interface SharedEntryResponse {
 
 // Fetches one random shared entry, asking the server to skip ids this
 // device already has (best-effort — the server falls back to a possible
-// repeat once everything has been seen).
-export async function retrieveShared(excludeIds: string[]): Promise<SharedEntry> {
-  const params = excludeIds.length > 0 ? `?exclude=${excludeIds.slice(-200).join(',')}` : ''
-  const res = await fetch(`/api/shared${params}`)
+// repeat once everything has been seen) and to restrict to the given JLPT
+// level(s) (an entry with no level classified always matches).
+export async function retrieveShared(
+  excludeIds: string[],
+  jlptLevels: string[] = [],
+): Promise<SharedEntry> {
+  const query = new URLSearchParams()
+  if (excludeIds.length > 0) query.set('exclude', excludeIds.slice(-200).join(','))
+  if (jlptLevels.length > 0) query.set('jlptLevel', jlptLevels.join(','))
+  const qs = query.toString()
+  const res = await fetch(`/api/shared${qs ? `?${qs}` : ''}`)
 
   if (!res.ok) {
     let message = `Erro ${res.status} ao buscar pergunta compartilhada`

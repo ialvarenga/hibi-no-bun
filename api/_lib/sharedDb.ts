@@ -94,32 +94,43 @@ export async function saveSharedEntry(input: SharedEntryInput): Promise<void> {
   )
 }
 
-// Picks one random shared entry, skipping ids the caller already has. Falls
-// back to a possible repeat once every entry in the pool has been seen,
-// rather than erroring — the pool is small enough that this is fine.
-export async function getRandomShared(excludeIds: string[]): Promise<SharedEntryRow | null> {
+// Picks one random shared entry, skipping ids the caller already has and
+// restricted to the caller's JLPT level(s) if given (an entry with no level
+// classified always matches, so older/unclassified entries stay reachable).
+// `jlpt_level` can hold either a single classified level ("N3", from the
+// import script's own-level classification) or the multi-level string this
+// app's own /api/generate saves ("N4-N3") — ILIKE '%N3%' matches both.
+// Falls back to a possible id repeat once every matching entry has been
+// seen, rather than erroring — the pool is small enough that this is fine.
+export async function getRandomShared(
+  excludeIds: string[],
+  jlptLevels: string[] = [],
+): Promise<SharedEntryRow | null> {
   const db = getPool()
   await ensureTable(db)
   const validExcludeIds = excludeIds.filter((id) => UUID_RE.test(id))
+  const levelPatterns = jlptLevels.length > 0 ? jlptLevels.map((l) => `%${l}%`) : null
 
-  const result =
-    validExcludeIds.length > 0
-      ? await db.query<SharedEntryRow>(
-          `SELECT * FROM shared_entries WHERE id <> ALL($1::uuid[]) ORDER BY random() LIMIT 1`,
-          [validExcludeIds],
-        )
-      : await db.query<SharedEntryRow>(`SELECT * FROM shared_entries ORDER BY random() LIMIT 1`)
-
-  if (result.rows.length > 0) return result.rows[0]
-
-  if (validExcludeIds.length > 0) {
-    const fallback = await db.query<SharedEntryRow>(
-      `SELECT * FROM shared_entries ORDER BY random() LIMIT 1`,
+  async function pick(withExclude: boolean): Promise<SharedEntryRow | null> {
+    const clauses: string[] = []
+    const params: unknown[] = []
+    if (levelPatterns) {
+      params.push(levelPatterns)
+      clauses.push(`(jlpt_level IS NULL OR jlpt_level ILIKE ANY($${params.length}))`)
+    }
+    if (withExclude && validExcludeIds.length > 0) {
+      params.push(validExcludeIds)
+      clauses.push(`id <> ALL($${params.length}::uuid[])`)
+    }
+    const where = clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : ''
+    const result = await db.query<SharedEntryRow>(
+      `SELECT * FROM shared_entries ${where} ORDER BY random() LIMIT 1`,
+      params,
     )
-    return fallback.rows[0] ?? null
+    return result.rows[0] ?? null
   }
 
-  return null
+  return (await pick(true)) ?? (await pick(false))
 }
 
 // Removes a shared entry from the community pool so it stops being served to

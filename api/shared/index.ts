@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { getRandomShared } from '../_lib/sharedDb'
+import { ALLOWED_JLPT_LEVELS } from '../_lib/constants'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
@@ -13,8 +14,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .map((id) => id.trim())
     .filter(Boolean)
 
+  const jlptLevelParam = req.query.jlptLevel
+  const jlptLevels = (
+    Array.isArray(jlptLevelParam) ? jlptLevelParam.join(',') : (jlptLevelParam ?? '')
+  )
+    .split(',')
+    .map((l) => l.trim())
+    .filter((l) => ALLOWED_JLPT_LEVELS.includes(l))
+
   try {
-    const entry = await getRandomShared(excludeIds)
+    const entry = await getRandomShared(excludeIds, jlptLevels)
     if (!entry) {
       res.status(404).json({ error: 'Nenhuma pergunta compartilhada disponível ainda.' })
       return

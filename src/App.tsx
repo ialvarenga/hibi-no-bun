@@ -159,7 +159,7 @@ export default function App() {
     setRetrievingShared(true)
     try {
       const excludeIds = await loadSharedIds()
-      const entry = await retrieveShared(excludeIds)
+      const entry = await retrieveShared(excludeIds, profile?.jlptLevels ?? [])
       await saveSharedEntry(entry)
       setSharedEntries((s) => [entry, ...s.filter((x) => x.id !== entry.id)])
     } catch (e) {
