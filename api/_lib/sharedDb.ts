@@ -1,46 +1,47 @@
-import { Pool } from 'pg'
-import type { GeneratedReading } from './generateReading'
+import { Pool } from "pg";
+import type { GeneratedReading } from "./generateReading";
 
 export interface SharedEntryInput extends GeneratedReading {
-  date: string
-  theme: string
-  topicsUsed: string[]
-  jlptLevel?: string
+  date: string;
+  theme: string;
+  topicsUsed: string[];
+  jlptLevel?: string;
 }
 
 export interface SharedEntryRow extends GeneratedReading {
-  id: string
-  created_at: string
-  date: string
-  theme: string
-  topics_used: string[]
-  jlpt_level: string | null
+  id: string;
+  created_at: string;
+  date: string;
+  theme: string;
+  topics_used: string[];
+  jlpt_level: string | null;
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Neon (production) requires TLS; a local Docker Postgres (see
 // docker-compose.yml) doesn't speak TLS at all — toggle based on host so the
 // same code works against both without extra config.
-let pool: Pool | null = null
+let pool: Pool | null = null;
 
 function getPool(): Pool {
-  if (pool) return pool
-  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL
+  if (pool) return pool;
+  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
   if (!connectionString) {
     throw new Error(
-      'Nenhum banco de dados configurado — defina DATABASE_URL (ou POSTGRES_URL) no servidor.',
-    )
+      "Nenhum banco de dados configurado — defina DATABASE_URL (ou POSTGRES_URL) no servidor.",
+    );
   }
-  const isLocal = /localhost|127\.0\.0\.1/.test(connectionString)
+  const isLocal = /localhost|127\.0\.0\.1/.test(connectionString);
   pool = new Pool({
     connectionString,
     ssl: isLocal ? false : { rejectUnauthorized: false },
-  })
-  return pool
+  });
+  return pool;
 }
 
-let ensureTablePromise: Promise<void> | null = null
+let ensureTablePromise: Promise<void> | null = null;
 
 // Lazily created on first real query — this project has no separate
 // migration step, so the table is brought up idempotently on demand.
@@ -64,16 +65,16 @@ async function ensureTable(db: Pool): Promise<void> {
           comprehension JSONB
         )`,
       )
-      .then(() => undefined)
+      .then(() => undefined);
   }
-  await ensureTablePromise
+  await ensureTablePromise;
 }
 
 // Only ever called with the output of generateReading() — never with a
 // client-supplied payload — so there's no untrusted input to validate here.
 export async function saveSharedEntry(input: SharedEntryInput): Promise<void> {
-  const db = getPool()
-  await ensureTable(db)
+  const db = getPool();
+  await ensureTable(db);
   await db.query(
     `INSERT INTO shared_entries
       (date, theme, topics_used, jlpt_level, paragraph_jp, translation_pt, vocab, grammar_used, source_title, source_url, comprehension)
@@ -91,7 +92,7 @@ export async function saveSharedEntry(input: SharedEntryInput): Promise<void> {
       input.source_url,
       JSON.stringify(input.comprehension),
     ],
-  )
+  );
 }
 
 // Picks one random shared entry, skipping ids the caller already has and
@@ -106,51 +107,97 @@ export async function getRandomShared(
   excludeIds: string[],
   jlptLevels: string[] = [],
 ): Promise<SharedEntryRow | null> {
-  const db = getPool()
-  await ensureTable(db)
-  const validExcludeIds = excludeIds.filter((id) => UUID_RE.test(id))
-  const levelPatterns = jlptLevels.length > 0 ? jlptLevels.map((l) => `%${l}%`) : null
+  const db = getPool();
+  await ensureTable(db);
+  const validExcludeIds = excludeIds.filter((id) => UUID_RE.test(id));
+  const levelPatterns =
+    jlptLevels.length > 0 ? jlptLevels.map((l) => `%${l}%`) : null;
 
   async function pick(withExclude: boolean): Promise<SharedEntryRow | null> {
-    const clauses: string[] = []
-    const params: unknown[] = []
+    const clauses: string[] = [];
+    const params: unknown[] = [];
     if (levelPatterns) {
-      params.push(levelPatterns)
-      clauses.push(`(jlpt_level IS NULL OR jlpt_level ILIKE ANY($${params.length}))`)
+      params.push(levelPatterns);
+      clauses.push(
+        `(jlpt_level IS NULL OR jlpt_level ILIKE ANY($${params.length}))`,
+      );
     }
     if (withExclude && validExcludeIds.length > 0) {
-      params.push(validExcludeIds)
-      clauses.push(`id <> ALL($${params.length}::uuid[])`)
+      params.push(validExcludeIds);
+      clauses.push(`id <> ALL($${params.length}::uuid[])`);
     }
-    const where = clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : ''
+    const where = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
     const result = await db.query<SharedEntryRow>(
       `SELECT * FROM shared_entries ${where} ORDER BY random() LIMIT 1`,
       params,
-    )
-    return result.rows[0] ?? null
+    );
+    return result.rows[0] ?? null;
   }
 
-  return (await pick(true)) ?? (await pick(false))
+  return (await pick(true)) ?? (await pick(false));
 }
 
 // Removes a shared entry from the community pool so it stops being served to
 // other users. Used by the owner to pull a reported (wrong) text. Returns
 // false for a malformed id or when nothing matched.
 export async function deleteSharedEntry(id: string): Promise<boolean> {
-  if (!UUID_RE.test(id)) return false
-  const db = getPool()
-  await ensureTable(db)
-  const result = await db.query(`DELETE FROM shared_entries WHERE id = $1`, [id])
-  return (result.rowCount ?? 0) > 0
+  if (!UUID_RE.test(id)) return false;
+  const db = getPool();
+  await ensureTable(db);
+  const result = await db.query(`DELETE FROM shared_entries WHERE id = $1`, [
+    id,
+  ]);
+  return (result.rowCount ?? 0) > 0;
 }
 
-export async function getSharedById(id: string): Promise<SharedEntryRow | null> {
-  if (!UUID_RE.test(id)) return null
-  const db = getPool()
-  await ensureTable(db)
+export interface SharedEntryListResult {
+  rows: SharedEntryRow[];
+  total: number;
+}
+
+// Paginated listing for the owner dashboard's pool browser, newest first.
+// Same jlpt_level ILIKE matching as getRandomShared, but without the
+// "unclassified always matches" fallback — here the filter is a deliberate
+// narrowing by the admin, not a serving fallback.
+export async function listSharedEntries(
+  offset: number,
+  limit: number,
+  jlptLevels: string[] = [],
+): Promise<SharedEntryListResult> {
+  const db = getPool();
+  await ensureTable(db);
+
+  const clauses: string[] = [];
+  const params: unknown[] = [];
+  if (jlptLevels.length > 0) {
+    params.push(jlptLevels.map((l) => `%${l}%`));
+    clauses.push(`jlpt_level ILIKE ANY($${params.length})`);
+  }
+  const where = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
+
+  const countResult = await db.query<{ count: string }>(
+    `SELECT COUNT(*) FROM shared_entries ${where}`,
+    params,
+  );
+  const total = Number(countResult.rows[0]?.count ?? 0);
+
+  const rowsResult = await db.query<SharedEntryRow>(
+    `SELECT * FROM shared_entries ${where} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+    [...params, limit, offset],
+  );
+
+  return { rows: rowsResult.rows, total };
+}
+
+export async function getSharedById(
+  id: string,
+): Promise<SharedEntryRow | null> {
+  if (!UUID_RE.test(id)) return null;
+  const db = getPool();
+  await ensureTable(db);
   const result = await db.query<SharedEntryRow>(
     `SELECT * FROM shared_entries WHERE id = $1 LIMIT 1`,
     [id],
-  )
-  return result.rows[0] ?? null
+  );
+  return result.rows[0] ?? null;
 }

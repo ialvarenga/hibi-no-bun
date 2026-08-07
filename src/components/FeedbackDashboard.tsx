@@ -1,5 +1,13 @@
-import { useEffect, useState } from 'react'
-import { Loader2, LogOut, RefreshCw, Check, Undo2, Trash2, PackageX } from 'lucide-react'
+import { useEffect, useState } from "react";
+import {
+  Loader2,
+  LogOut,
+  RefreshCw,
+  Check,
+  Undo2,
+  Trash2,
+  PackageX,
+} from "lucide-react";
 import {
   listFeedback,
   resolveFeedback,
@@ -8,143 +16,157 @@ import {
   adminLogin,
   adminLogout,
   NOT_AUTHED,
-} from '../lib/api'
-import { FEEDBACK_CATEGORY_LABELS } from '../lib/constants'
-import type { FeedbackRow } from '../lib/types'
+} from "../lib/api";
+import { FEEDBACK_CATEGORY_LABELS } from "../lib/constants";
+import type { FeedbackRow } from "../lib/types";
+import SharedPoolPanel from "./SharedPoolPanel";
 
 // Owner-only view, reached at /?admin. The ?admin flag carries no secret — the
 // real gate is the HttpOnly session cookie set by /api/admin-session. If the
 // list endpoint 401s, we show the password login form.
 export default function FeedbackDashboard() {
-  const [authed, setAuthed] = useState<boolean | null>(null) // null = checking
-  const [rows, setRows] = useState<FeedbackRow[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [password, setPassword] = useState('')
-  const [loggingIn, setLoggingIn] = useState(false)
-  const [onlyUnresolved, setOnlyUnresolved] = useState(false)
+  const [authed, setAuthed] = useState<boolean | null>(null); // null = checking
+  const [rows, setRows] = useState<FeedbackRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [onlyUnresolved, setOnlyUnresolved] = useState(false);
   // shared_entry_ids already removed from the pool this session — hides the
   // button on every report pointing at the same entry.
-  const [removedFromPool, setRemovedFromPool] = useState<Set<string>>(new Set())
+  const [removedFromPool, setRemovedFromPool] = useState<Set<string>>(
+    new Set(),
+  );
+  const [tab, setTab] = useState<"feedback" | "pool">("feedback");
 
   async function load() {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const data = await listFeedback()
-      setRows(data)
-      setAuthed(true)
+      const data = await listFeedback();
+      setRows(data);
+      setAuthed(true);
     } catch (err) {
       if (err instanceof Error && err.message === NOT_AUTHED) {
-        setAuthed(false)
+        setAuthed(false);
       } else {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar')
-        setAuthed(true)
+        setError(err instanceof Error ? err.message : "Erro ao carregar");
+        setAuthed(true);
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   useEffect(() => {
-    void load()
-  }, [])
+    void load();
+  }, []);
 
   async function handleLogin() {
-    setLoggingIn(true)
-    setError(null)
+    setLoggingIn(true);
+    setError(null);
     try {
-      await adminLogin(password)
-      setPassword('')
-      await load()
+      await adminLogin(password);
+      setPassword("");
+      await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Senha incorreta.')
+      setError(err instanceof Error ? err.message : "Senha incorreta.");
     } finally {
-      setLoggingIn(false)
+      setLoggingIn(false);
     }
   }
 
   async function handleLogout() {
-    await adminLogout()
-    setAuthed(false)
-    setRows([])
+    await adminLogout();
+    setAuthed(false);
+    setRows([]);
   }
 
   async function toggleResolved(row: FeedbackRow) {
-    const next = !row.resolved
-    setRows((rs) => rs.map((r) => (r.id === row.id ? { ...r, resolved: next } : r)))
+    const next = !row.resolved;
+    setRows((rs) =>
+      rs.map((r) => (r.id === row.id ? { ...r, resolved: next } : r)),
+    );
     try {
-      await resolveFeedback(row.id, next)
+      await resolveFeedback(row.id, next);
     } catch (err) {
       // Revert on failure.
-      setRows((rs) => rs.map((r) => (r.id === row.id ? { ...r, resolved: !next } : r)))
-      setError(err instanceof Error ? err.message : 'Erro ao atualizar')
+      setRows((rs) =>
+        rs.map((r) => (r.id === row.id ? { ...r, resolved: !next } : r)),
+      );
+      setError(err instanceof Error ? err.message : "Erro ao atualizar");
     }
   }
 
   async function handleDelete(row: FeedbackRow) {
-    if (!window.confirm('Excluir este feedback permanentemente?')) return
-    const prev = rows
-    setRows((rs) => rs.filter((r) => r.id !== row.id))
+    if (!window.confirm("Excluir este feedback permanentemente?")) return;
+    const prev = rows;
+    setRows((rs) => rs.filter((r) => r.id !== row.id));
     try {
-      await deleteFeedback(row.id)
+      await deleteFeedback(row.id);
     } catch (err) {
       // Restore on failure.
-      setRows(prev)
-      setError(err instanceof Error ? err.message : 'Erro ao excluir')
+      setRows(prev);
+      setError(err instanceof Error ? err.message : "Erro ao excluir");
     }
   }
 
   async function handleRemoveFromPool(row: FeedbackRow) {
-    const sharedId = row.shared_entry_id
-    if (!sharedId) return
+    const sharedId = row.shared_entry_id;
+    if (!sharedId) return;
     if (
       !window.confirm(
-        'Remover este texto do pool da comunidade? Ele deixará de ser servido para outros usuários.',
+        "Remover este texto do pool da comunidade? Ele deixará de ser servido para outros usuários.",
       )
     )
-      return
-    setError(null)
+      return;
+    setError(null);
     try {
-      await deleteSharedEntry(sharedId)
-      setRemovedFromPool((s) => new Set(s).add(sharedId))
+      await deleteSharedEntry(sharedId);
+      setRemovedFromPool((s) => new Set(s).add(sharedId));
       // The reported problem is handled — mark the report resolved too.
       if (!row.resolved) {
-        setRows((rs) => rs.map((r) => (r.id === row.id ? { ...r, resolved: true } : r)))
-        await resolveFeedback(row.id, true).catch(() => {})
+        setRows((rs) =>
+          rs.map((r) => (r.id === row.id ? { ...r, resolved: true } : r)),
+        );
+        await resolveFeedback(row.id, true).catch(() => {});
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao remover do pool')
+      setError(err instanceof Error ? err.message : "Erro ao remover do pool");
     }
   }
 
-  const unresolvedCount = rows.filter((r) => !r.resolved).length
-  const visible = onlyUnresolved ? rows.filter((r) => !r.resolved) : rows
+  const unresolvedCount = rows.filter((r) => !r.resolved).length;
+  const visible = onlyUnresolved ? rows.filter((r) => !r.resolved) : rows;
 
   const shell = (children: React.ReactNode) => (
     <div className="min-h-screen w-full bg-paper font-body text-ink">
       <div className="max-w-2xl mx-auto px-5 py-8">{children}</div>
     </div>
-  )
+  );
 
   if (authed === null) {
     return shell(
       <p className="text-ink-soft text-sm inline-flex items-center gap-2">
         <Loader2 size={16} className="animate-spin" /> Carregando...
       </p>,
-    )
+    );
   }
 
   if (!authed) {
     return shell(
       <div className="max-w-sm">
-        <h1 className="text-lg font-bold mb-4 text-indigo">Painel de feedback</h1>
-        <p className="text-sm text-ink-soft mb-4">Entre com a senha do administrador.</p>
+        <h1 className="text-lg font-bold mb-4 text-indigo">
+          Painel de feedback
+        </h1>
+        <p className="text-sm text-ink-soft mb-4">
+          Entre com a senha do administrador.
+        </p>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && password && void handleLogin()}
+          onKeyDown={(e) => e.key === "Enter" && password && void handleLogin()}
           placeholder="Senha"
           className="w-full border border-paper-line bg-card rounded-lg px-3 py-2 text-sm text-ink placeholder:text-ink-soft focus:outline-none focus:border-indigo-soft mb-3"
         />
@@ -158,26 +180,39 @@ export default function FeedbackDashboard() {
           Entrar
         </button>
       </div>,
-    )
+    );
   }
 
   return shell(
     <>
-      <div className="flex items-center justify-between gap-3 mb-6">
+      <div className="flex items-center justify-between gap-3 mb-4">
         <h1 className="text-lg font-bold text-indigo">
-          Feedback{' '}
-          <span className="text-ink-soft font-normal text-sm">
-            ({unresolvedCount} não {unresolvedCount === 1 ? 'resolvido' : 'resolvidos'})
-          </span>
+          {tab === "feedback" ? (
+            <>
+              Feedback{" "}
+              <span className="text-ink-soft font-normal text-sm">
+                ({unresolvedCount} não{" "}
+                {unresolvedCount === 1 ? "resolvido" : "resolvidos"})
+              </span>
+            </>
+          ) : (
+            "Pool da comunidade"
+          )}
         </h1>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => void load()}
-            disabled={loading}
-            className="border border-paper-line rounded-full px-3 py-1.5 text-xs inline-flex items-center gap-1.5 text-ink-soft disabled:opacity-60"
-          >
-            <RefreshCw size={13} className={loading ? 'animate-spin' : undefined} /> Atualizar
-          </button>
+          {tab === "feedback" && (
+            <button
+              onClick={() => void load()}
+              disabled={loading}
+              className="border border-paper-line rounded-full px-3 py-1.5 text-xs inline-flex items-center gap-1.5 text-ink-soft disabled:opacity-60"
+            >
+              <RefreshCw
+                size={13}
+                className={loading ? "animate-spin" : undefined}
+              />{" "}
+              Atualizar
+            </button>
+          )}
           <button
             onClick={() => void handleLogout()}
             className="border border-paper-line rounded-full px-3 py-1.5 text-xs inline-flex items-center gap-1.5 text-ink-soft"
@@ -187,90 +222,133 @@ export default function FeedbackDashboard() {
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-xs text-ink-soft mb-4 select-none">
-        <input
-          type="checkbox"
-          checked={onlyUnresolved}
-          onChange={(e) => setOnlyUnresolved(e.target.checked)}
-        />
-        Mostrar apenas não resolvidos
-      </label>
+      <div className="flex items-center gap-2 mb-6">
+        <button
+          onClick={() => setTab("feedback")}
+          className={`rounded-full px-3 py-1.5 text-xs font-medium border ${
+            tab === "feedback"
+              ? "bg-indigo text-white border-indigo"
+              : "border-paper-line text-ink-soft"
+          }`}
+        >
+          Feedback
+        </button>
+        <button
+          onClick={() => setTab("pool")}
+          className={`rounded-full px-3 py-1.5 text-xs font-medium border ${
+            tab === "pool"
+              ? "bg-indigo text-white border-indigo"
+              : "border-paper-line text-ink-soft"
+          }`}
+        >
+          Pool
+        </button>
+      </div>
 
-      {error && <p className="text-xs mb-4 text-vermillion">{error}</p>}
+      {tab === "pool" && (
+        <SharedPoolPanel onAuthExpired={() => setAuthed(false)} />
+      )}
 
-      {visible.length === 0 ? (
-        <p className="text-sm text-ink-soft">Nenhum feedback {onlyUnresolved ? 'pendente' : 'ainda'}.</p>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {visible.map((r) => (
-            <div
-              key={r.id}
-              className={`border rounded-xl px-4 py-3 ${
-                r.resolved ? 'border-paper-line bg-paper opacity-60' : 'border-paper-line bg-card'
-              }`}
-            >
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-indigo">
-                  {FEEDBACK_CATEGORY_LABELS[r.category] ?? r.category}
-                </span>
-                <span className="text-xs text-ink-soft shrink-0">
-                  {r.source === 'shared' ? 'Comunidade' : 'Próprio'}
-                  {r.reading_date ? ` · ${r.reading_date}` : ''}
-                  {r.theme ? ` · ${r.theme}` : ''}
-                </span>
-              </div>
-              {r.comment && <p className="text-sm mb-2 text-ink whitespace-pre-wrap">{r.comment}</p>}
-              <p className="font-display text-sm leading-loose text-ink-soft mb-2">
-                {r.paragraph_jp}
-              </p>
-              {r.translation_pt && (
-                <p className="text-xs text-ink-soft mb-2">{r.translation_pt}</p>
-              )}
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] text-ink-soft">
-                  {new Date(r.created_at).toLocaleString('pt-BR')}
-                </span>
-                <div className="flex items-center gap-2 flex-wrap justify-end">
-                  {r.shared_entry_id && !removedFromPool.has(r.shared_entry_id) && (
-                    <button
-                      onClick={() => void handleRemoveFromPool(r)}
-                      className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-vermillion"
-                    >
-                      <PackageX size={12} /> Remover do pool
-                    </button>
-                  )}
-                  {r.shared_entry_id && removedFromPool.has(r.shared_entry_id) && (
-                    <span className="text-[11px] text-ink-soft inline-flex items-center gap-1">
-                      <PackageX size={12} /> Removido do pool
+      {tab === "feedback" && (
+        <>
+          <label className="flex items-center gap-2 text-xs text-ink-soft mb-4 select-none">
+            <input
+              type="checkbox"
+              checked={onlyUnresolved}
+              onChange={(e) => setOnlyUnresolved(e.target.checked)}
+            />
+            Mostrar apenas não resolvidos
+          </label>
+
+          {error && <p className="text-xs mb-4 text-vermillion">{error}</p>}
+
+          {visible.length === 0 ? (
+            <p className="text-sm text-ink-soft">
+              Nenhum feedback {onlyUnresolved ? "pendente" : "ainda"}.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {visible.map((r) => (
+                <div
+                  key={r.id}
+                  className={`border rounded-xl px-4 py-3 ${
+                    r.resolved
+                      ? "border-paper-line bg-paper opacity-60"
+                      : "border-paper-line bg-card"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-indigo">
+                      {FEEDBACK_CATEGORY_LABELS[r.category] ?? r.category}
                     </span>
+                    <span className="text-xs text-ink-soft shrink-0">
+                      {r.source === "shared" ? "Comunidade" : "Próprio"}
+                      {r.reading_date ? ` · ${r.reading_date}` : ""}
+                      {r.theme ? ` · ${r.theme}` : ""}
+                    </span>
+                  </div>
+                  {r.comment && (
+                    <p className="text-sm mb-2 text-ink whitespace-pre-wrap">
+                      {r.comment}
+                    </p>
                   )}
-                  <button
-                    onClick={() => void toggleResolved(r)}
-                    className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-ink-soft"
-                  >
-                    {r.resolved ? (
-                      <>
-                        <Undo2 size={12} /> Reabrir
-                      </>
-                    ) : (
-                      <>
-                        <Check size={12} /> Resolver
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => void handleDelete(r)}
-                    aria-label="Excluir feedback"
-                    className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-vermillion"
-                  >
-                    <Trash2 size={12} /> Excluir
-                  </button>
+                  <p className="font-display text-sm leading-loose text-ink-soft mb-2">
+                    {r.paragraph_jp}
+                  </p>
+                  {r.translation_pt && (
+                    <p className="text-xs text-ink-soft mb-2">
+                      {r.translation_pt}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-ink-soft">
+                      {new Date(r.created_at).toLocaleString("pt-BR")}
+                    </span>
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      {r.shared_entry_id &&
+                        !removedFromPool.has(r.shared_entry_id) && (
+                          <button
+                            onClick={() => void handleRemoveFromPool(r)}
+                            className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-vermillion"
+                          >
+                            <PackageX size={12} /> Remover do pool
+                          </button>
+                        )}
+                      {r.shared_entry_id &&
+                        removedFromPool.has(r.shared_entry_id) && (
+                          <span className="text-[11px] text-ink-soft inline-flex items-center gap-1">
+                            <PackageX size={12} /> Removido do pool
+                          </span>
+                        )}
+                      <button
+                        onClick={() => void toggleResolved(r)}
+                        className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-ink-soft"
+                      >
+                        {r.resolved ? (
+                          <>
+                            <Undo2 size={12} /> Reabrir
+                          </>
+                        ) : (
+                          <>
+                            <Check size={12} /> Resolver
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => void handleDelete(r)}
+                        aria-label="Excluir feedback"
+                        className="border border-paper-line rounded-full px-3 py-1 text-xs inline-flex items-center gap-1.5 text-vermillion"
+                      >
+                        <Trash2 size={12} /> Excluir
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </>,
-  )
+  );
 }
